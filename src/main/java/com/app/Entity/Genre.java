@@ -1,15 +1,7 @@
 package com.app.Entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.Id;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
 public class Genre {
 
     @Id
@@ -17,4 +9,36 @@ public class Genre {
     private Movie movie;
     private GenreType genreType;
 
+    public Genre() {
+    }
+
+    public Genre(Long id, Movie movie, GenreType genreType) {
+        this.id = id;
+        this.movie = movie;
+        this.genreType = genreType;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Movie getMovie() {
+        return movie;
+    }
+
+    public void setMovie(Movie movie) {
+        this.movie = movie;
+    }
+
+    public GenreType getGenreType() {
+        return genreType;
+    }
+
+    public void setGenreType(GenreType genreType) {
+        this.genreType = genreType;
+    }
 }
