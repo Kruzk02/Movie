@@ -16,6 +16,19 @@ public class Movie {
     private Director director;
     private Set<Genre> genres;
 
+    @Override
+    public String toString() {
+        return "Movie{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", rating=" + rating +
+                ", release_year=" + release_year +
+                ", length=" + length +
+                ", director=" + director +
+                ", genres=" + genres +
+                '}';
+    }
+
     public Movie() {
     }
 
