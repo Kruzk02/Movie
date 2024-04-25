@@ -7,6 +7,8 @@ import com.app.Expection.DirectorNotFound;
 import com.app.Mapper.DirectorMapper;
 import com.app.Repository.DirectorRepository;
 import com.app.Service.DirectorService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -15,6 +17,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class DirectorServiceImpl implements DirectorService {
 
+    private static final Logger log = LogManager.getLogger(DirectorServiceImpl.class);
     private final DirectorRepository directorRepository;
 
     @Autowired
@@ -36,6 +39,7 @@ public class DirectorServiceImpl implements DirectorService {
     @Override
     public Mono<Director> save(DirectorDTO directorDTO) {
         Director director = DirectorMapper.INSTANCE.mapDirectorDtoToDirector(directorDTO);
+        log.info(director.toString());
         return directorRepository.save(director);
     }
 
