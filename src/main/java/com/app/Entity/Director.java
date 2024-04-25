@@ -1,6 +1,7 @@
 package com.app.Entity;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
@@ -9,10 +10,15 @@ import java.time.LocalDate;
 public class Director {
 
     @Id
+    @Column("id")
     private Long id;
+    @Column("first_name")
     private String firstName;
+    @Column("last_name")
     private String lastName;
+    @Column("birthdate")
     private LocalDate birthDate;
+    @Column("nationality")
     private Nationality nationality;
 
     public Director() {
