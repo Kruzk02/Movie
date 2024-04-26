@@ -11,7 +11,6 @@ public interface DirectorMapper {
 
     DirectorMapper INSTANCE = Mappers.getMapper(DirectorMapper.class);
 
-    @Mapping(source = "id",target = "id")
     @Mapping(source = "firstName",target = "firstName")
     @Mapping(source = "lastName",target = "lastName")
     @Mapping(source = "birthDate",target = "birthDate")
