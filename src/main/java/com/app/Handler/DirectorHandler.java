@@ -29,16 +29,13 @@ public class DirectorHandler {
         Long id = Long.valueOf(request.pathVariable("id"));
         Mono<Director> directorMono = directorService.findById(id);
         return directorMono.flatMap(director -> ServerResponse.ok().bodyValue(director)
-                .switchIfEmpty(ServerResponse.notFound().build()))
-                .onErrorResume(throwable -> ServerResponse.badRequest().bodyValue("Error occurred while find director: "+ throwable.getMessage()));
+                .switchIfEmpty(ServerResponse.notFound().build()));
     }
 
     public Mono<ServerResponse> create(ServerRequest request){
         Mono<DirectorDTO> directorMono = request.bodyToMono(DirectorDTO.class);
         return directorMono.flatMap(directorDTO -> directorService.save(directorDTO)
-                .flatMap(savedDirector -> ServerResponse.ok().bodyValue(savedDirector))
-                .onErrorResume(throwable -> ServerResponse.badRequest().bodyValue("Error occurred while saving director: "+ throwable.getMessage()))
-        );
+                .flatMap(savedDirector -> ServerResponse.ok().bodyValue(savedDirector)));
     }
 
     public Mono<ServerResponse> update(ServerRequest request){
