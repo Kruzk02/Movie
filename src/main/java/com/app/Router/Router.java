@@ -11,12 +11,12 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 
 @Configuration
-public class DirectorRouter {
+public class Router {
 
     private final DirectorHandler directorHandler;
 
     @Autowired
-    public DirectorRouter(DirectorHandler directorHandler) {
+    public Router(DirectorHandler directorHandler) {
         this.directorHandler = directorHandler;
     }
 
