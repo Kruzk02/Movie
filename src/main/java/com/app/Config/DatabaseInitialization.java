@@ -19,6 +19,13 @@ public class DatabaseInitialization {
                 "first_name VARCHAR(255) NOT NULL," +
                 "last_name VARCHAR(255) NOT NULL," +
                 "nationality VARCHAR(255) NOT NULL," +
+                "birthDate DATE NOT NULL);"+
+
+                "CREATE TABLE IF NOT EXISTS Actor("+
+                "id SERIAL PRIMARY KEY,"+
+                "first_name VARCHAR(255) NOT NULL,"+
+                "last_name VARCHAR(255) NOT NULL,"+
+                "nationality VARCHAR(255) NOT NULL,"+
                 "birthDate DATE NOT NULL);"
         ).fetch().rowsUpdated().block();
     }
