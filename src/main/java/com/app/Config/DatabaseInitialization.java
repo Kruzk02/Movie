@@ -38,7 +38,7 @@ public class DatabaseInitialization {
                     genre_id INTEGER NOT NULL,
                     rating_id INTEGER NOT NULL,
                     title VARCHAR(255) NOT NULL,
-                    release_year INTEGER NOT NULL,
+                    release_year DATE NOT NULL,
                     length INTEGER NOT NULL,
                     CONSTRAINT fk_movie_rating FOREIGN KEY (rating_id) REFERENCES Rating(id)
                 );
@@ -99,6 +99,50 @@ public class DatabaseInitialization {
                 CREATE INDEX idx_genre_movie_movie_id ON Genre_Movie(movie_id);
                 CREATE INDEX idx_movie_rating_movie_id ON Movie_Rating(movie_id);
                 CREATE INDEX idx_movie_rating_rating_id ON Movie_Rating(rating_id);
+                """;
+        databaseClient.sql(sql).fetch().rowsUpdated().block();
+    }
+
+    @PostConstruct
+    public void insertDataToTable(){
+        String sql = """
+                INSERT INTO Genre (name) VALUES
+                ('Action'),
+                ('Adventure'),
+                ('Comedy'),
+                ('Drama'),
+                ('Romance'),
+                ('Horror'),
+                ('Science_Fiction'),
+                ('Fantasy'),
+                ('Thriller'),
+                ('Mystery'),
+                ('Crime'),
+                ('Animation'),
+                ('Documentary'),
+                ('Historical'),
+                ('Biographical'),
+                ('Musical'),
+                ('War'),
+                ('Western'),
+                ('Spy_Espionage'),
+                ('Supernatural'),
+                ('Psychological'),
+                ('Family'),
+                ('Sports'),
+                ('Disaster'),
+                ('Romance_Comedy'),
+                ('Musical_Comedy'),
+                ('Martial_Arts'),
+                ('Noir'),
+                ('Satire'),
+                ('Mockumentary');
+                INSERT INTO Rating (rating) VALUES
+                (1.0),
+                (2.0),
+                (3.0),
+                (4.0),
+                (5.0);
                 """;
         databaseClient.sql(sql).fetch().rowsUpdated().block();
     }
