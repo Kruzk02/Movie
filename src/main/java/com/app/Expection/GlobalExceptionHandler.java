@@ -29,6 +29,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(MovieNotFound.class)
+    public ResponseEntity<ErrorResponse> handleMovieNotFound(MovieNotFound ex){
+        ErrorResponse response = new ErrorResponse("Movie Not Found");
+        log.error(ex.getMessage());
+        return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex){
         ErrorResponse response = new ErrorResponse(ex.getMessage());
