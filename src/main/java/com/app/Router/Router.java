@@ -2,6 +2,7 @@ package com.app.Router;
 
 import com.app.Handler.ActorHandler;
 import com.app.Handler.DirectorHandler;
+import com.app.Handler.MovieHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,11 +17,13 @@ public class Router {
 
     private final DirectorHandler directorHandler;
     private final ActorHandler actorHandler;
+    private final MovieHandler movieHandler;
 
     @Autowired
-    public Router(DirectorHandler directorHandler, ActorHandler actorHandler) {
+    public Router(DirectorHandler directorHandler, ActorHandler actorHandler, MovieHandler movieHandler) {
         this.directorHandler = directorHandler;
         this.actorHandler = actorHandler;
+        this.movieHandler = movieHandler;
     }
 
     @Bean
@@ -41,5 +44,15 @@ public class Router {
                 .andRoute(POST("/actors"),actorHandler::save)
                 .andRoute(PUT("/actors/{id}"),actorHandler::update)
                 .andRoute(DELETE("/actors/{id}"),actorHandler::delete);
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> movieRouter(){
+        return RouterFunctions
+                .route(GET("/movies"),movieHandler::findAll)
+                .andRoute(GET("/movies/{id}"),movieHandler::findById)
+                .andRoute(POST("/movies"),movieHandler::save)
+                .andRoute(PUT("/movies/{id}"),movieHandler::update)
+                .andRoute(DELETE("/movies/{id}"),movieHandler::delete);
     }
 }
