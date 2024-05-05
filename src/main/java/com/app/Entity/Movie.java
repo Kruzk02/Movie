@@ -12,8 +12,11 @@ import java.util.Set;
 public class Movie {
     @Id
     private Long id;
+    @Column("title")
     private String title;
+    @Column("release_year")
     private LocalDate release_year;
+    @Column("length")
     private Long movie_length;
 
     @Column("director_id")

@@ -2,6 +2,7 @@ package com.app.Entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.Set;
@@ -11,9 +12,19 @@ public class Rating {
 
     @Id
     private Long id;
-    private RatingType ratingType;
+    @Column("rating")
+    private Double rating;
+
     @Transient
     private Set<Movie> movies;
+
+    public Rating() {
+    }
+
+    public Rating(Long id, Double rating) {
+        this.id = id;
+        this.rating = rating;
+    }
 
     public Long getId() {
         return id;
@@ -23,12 +34,12 @@ public class Rating {
         this.id = id;
     }
 
-    public RatingType getRatingType() {
-        return ratingType;
+    public Double getRating() {
+        return rating;
     }
 
-    public void setRatingType(RatingType ratingType) {
-        this.ratingType = ratingType;
+    public void setRating(Double rating) {
+        this.rating = rating;
     }
 
     public Set<Movie> getMovies() {
@@ -37,16 +48,5 @@ public class Rating {
 
     public void setMovies(Set<Movie> movies) {
         this.movies = movies;
-    }
-}
-
-enum RatingType{
-    ONE(1.0),
-    TWO(2.0),
-    THREE(3.0),
-    FOUR(4.0),
-    FIVE(5.0);
-
-    RatingType(double v) {
     }
 }

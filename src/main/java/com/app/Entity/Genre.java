@@ -3,6 +3,7 @@ package com.app.Entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.Set;
@@ -12,9 +13,12 @@ public class Genre {
 
     @Id
     private Long id;
-    private GenreType genreType;
+    @Column("name")
+    private String genre;
+
     @Transient
     private Set<Movie> movies;
+
     public Long getId() {
         return id;
     }
@@ -23,12 +27,12 @@ public class Genre {
         this.id = id;
     }
 
-    public GenreType getGenreType() {
-        return genreType;
+    public String getGenre() {
+        return genre;
     }
 
-    public void setGenreType(GenreType genreType) {
-        this.genreType = genreType;
+    public void setGenre(String genre) {
+        this.genre = genre;
     }
 
     public Set<Movie> getMovies() {
@@ -38,37 +42,4 @@ public class Genre {
     public void setMovies(Set<Movie> movies) {
         this.movies = movies;
     }
-}
-
-enum GenreType {
-    Action,
-    Adventure,
-    Comedy,
-    Drama,
-    Romance,
-    Horror,
-    Science_Fiction,
-    Fantasy,
-    Thriller,
-    Mystery,
-    Crime,
-    Animation,
-    Documentary,
-    Historical,
-    Biographical,
-    Musical,
-    War,
-    Western,
-    Spy_Espionage,
-    Supernatural,
-    Psychological,
-    Family,
-    Sports,
-    Disaster,
-    Romance_Comedy,
-    Musical_Comedy,
-    Martial_Arts,
-    Noir,
-    Satire,
-    Mockumentary
 }
