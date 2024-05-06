@@ -15,9 +15,6 @@ public class Rating {
     @Column("rating")
     private Double rating;
 
-    @Transient
-    private Set<Movie> movies;
-
     public Rating() {
     }
 
@@ -42,11 +39,4 @@ public class Rating {
         this.rating = rating;
     }
 
-    public Set<Movie> getMovies() {
-        return movies;
-    }
-
-    public void setMovies(Set<Movie> movies) {
-        this.movies = movies;
-    }
 }
