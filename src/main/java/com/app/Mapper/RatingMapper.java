@@ -12,7 +12,6 @@ public interface RatingMapper {
     RatingMapper INSTANCE = Mappers.getMapper(RatingMapper.class);
 
     @Mapping(source = "rating",target = "rating")
-    @Mapping(source = "movie",target = "movie")
     Rating mappingDtoToEntity(RatingDTO ratingDTO);
 
 }
