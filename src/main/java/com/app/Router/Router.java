@@ -3,6 +3,7 @@ package com.app.Router;
 import com.app.Handler.ActorHandler;
 import com.app.Handler.DirectorHandler;
 import com.app.Handler.MovieHandler;
+import com.app.Handler.RatingHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,12 +19,14 @@ public class Router {
     private final DirectorHandler directorHandler;
     private final ActorHandler actorHandler;
     private final MovieHandler movieHandler;
+    private final RatingHandler ratingHandler;
 
     @Autowired
-    public Router(DirectorHandler directorHandler, ActorHandler actorHandler, MovieHandler movieHandler) {
+    public Router(DirectorHandler directorHandler, ActorHandler actorHandler, MovieHandler movieHandler, RatingHandler ratingHandler) {
         this.directorHandler = directorHandler;
         this.actorHandler = actorHandler;
         this.movieHandler = movieHandler;
+        this.ratingHandler = ratingHandler;
     }
 
     @Bean
@@ -54,5 +57,12 @@ public class Router {
                 .andRoute(POST("/movies"),movieHandler::save)
                 .andRoute(PUT("/movies/{id}"),movieHandler::update)
                 .andRoute(DELETE("/movies/{id}"),movieHandler::delete);
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> ratingRouter(){
+        return RouterFunctions
+                .route(GET("/ratings"),ratingHandler::findAll)
+                .andRoute(GET("/ratings/{id}"),ratingHandler::findById);
     }
 }
