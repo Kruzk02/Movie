@@ -26,6 +26,12 @@ public class MovieHandler {
         return ServerResponse.ok().body(movieFlux, Movie.class);
     }
 
+    public Mono<ServerResponse> findByGenre(ServerRequest request){
+        Long genreId = Long.valueOf(request.pathVariable("genreId"));
+        Flux<Movie> movieFlux = movieService.findByGenreId(genreId);
+        return ServerResponse.ok().body(movieFlux, Movie.class);
+    }
+
     public Mono<ServerResponse> findById(ServerRequest request){
         Long id = Long.valueOf(request.pathVariable("id"));
         Mono<Movie> movieMono = movieService.findById(id);

@@ -48,6 +48,12 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    public Flux<Movie> findByGenreId(Long genreId) {
+        return movieRepository.findByGenreId(genreId)
+                .log("Find movie with a genre id: " + genreId);
+    }
+
+    @Override
     public Mono<Movie> findById(Long id) {
         return movieRepository.findById(id)
                 .switchIfEmpty(Mono.error(new MovieNotFound("Movie Not Found")))
