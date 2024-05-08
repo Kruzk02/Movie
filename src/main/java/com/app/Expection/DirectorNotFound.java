@@ -12,4 +12,9 @@ public class DirectorNotFound extends RuntimeException{
     public DirectorNotFound(String message) {
         super(message);
     }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
 }
