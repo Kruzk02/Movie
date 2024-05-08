@@ -56,7 +56,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Mono<Movie> findById(Long id) {
         return movieRepository.findById(id)
-                .switchIfEmpty(Mono.error(new MovieNotFound("Movie Not Found")))
+                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
                 .flatMap(movie -> {
                     Mono<Genre> genreMono = genreRepository.findById(movie.getGenre_id())
                             .switchIfEmpty(Mono.error(new GenreNotFound("Genre Not Found For Movie")));
@@ -85,7 +85,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Mono<Movie> update(Long id, MovieDTO movieDTO) {
         return movieRepository.findById(id)
-                .switchIfEmpty(Mono.error(new MovieNotFound("Movie Not Found")))
+                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
                 .flatMap(existingMovie -> {
                     existingMovie.setTitle(movieDTO.getTitle());
                     existingMovie.setRelease_year(movieDTO.getRelease_year());
@@ -110,7 +110,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Mono<Void> delete(Long id) {
         return movieRepository.findById(id)
-                .switchIfEmpty(Mono.error(new MovieNotFound("Movie Not Found")))
+                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
                 .flatMap(movieRepository::delete)
                 .log("Delete a movie with a id: " + id);
     }
