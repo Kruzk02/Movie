@@ -12,4 +12,9 @@ public class ActorNotFound extends RuntimeException{
     public ActorNotFound(String message) {
         super(message);
     }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
 }

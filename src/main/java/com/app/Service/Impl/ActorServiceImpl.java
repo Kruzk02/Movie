@@ -29,8 +29,8 @@ public class ActorServiceImpl implements ActorService {
     @Override
     public Mono<Actor> findById(Long id) {
         return actorRepository.findById(id)
-                .switchIfEmpty(Mono.error(new ActorNotFound("Actor Not Found")))
-                .log("Find a Actor with a id: "+id);
+                .switchIfEmpty(Mono.error(new ActorNotFound("Actor not found with id: " + id)))
+                .log("Find a Actor with a id: " + id);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ActorServiceImpl implements ActorService {
     @Override
     public Mono<Void> delete(Long id) {
         return actorRepository.findById(id)
-                .switchIfEmpty(Mono.error(new ActorNotFound("Actor Not Found")))
+                .switchIfEmpty(Mono.error(new ActorNotFound("Actor not found with id: "+ id)))
                 .flatMap(actorRepository::delete)
                 .log("Delete a Actor with a id: "+id);
     }
