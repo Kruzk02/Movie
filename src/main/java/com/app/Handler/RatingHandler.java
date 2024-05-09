@@ -1,5 +1,7 @@
 package com.app.Handler;
 
+import com.app.DTO.MovieRatingDTO;
+import com.app.DTO.RatingDTO;
 import com.app.Entity.Movie;
 import com.app.Entity.Rating;
 import com.app.Service.RatingService;
@@ -30,5 +32,11 @@ public class RatingHandler {
         Mono<Rating> ratingMono = ratingService.findById(id);
         return ratingMono.flatMap(rating -> ServerResponse.ok().bodyValue(rating)
                 .switchIfEmpty(ServerResponse.notFound().build()));
+    }
+
+    public Mono<ServerResponse> saveMovieRating(ServerRequest request){
+        Mono<MovieRatingDTO> ratingMono = request.bodyToMono(MovieRatingDTO.class);
+        return ratingMono.flatMap(movieRatingDTO -> ratingService.saveMovieRating (movieRatingDTO)
+                .flatMap(savedRating -> ServerResponse.ok().bodyValue(savedRating)));
     }
 }
