@@ -64,6 +64,7 @@ public class Router {
     public RouterFunction<ServerResponse> ratingRouter(){
         return RouterFunctions
                 .route(GET("/ratings"),ratingHandler::findAll)
-                .andRoute(GET("/ratings/{id}"),ratingHandler::findById);
+                .andRoute(GET("/ratings/{id}"),ratingHandler::findById)
+                .andRoute(POST("/ratings"),ratingHandler::saveMovieRating);
     }
 }
