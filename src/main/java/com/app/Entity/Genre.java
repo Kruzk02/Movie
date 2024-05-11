@@ -16,9 +16,6 @@ public class Genre {
     @Column("name")
     private String genre;
 
-    @Transient
-    private Set<Movie> movies;
-
     public Long getId() {
         return id;
     }
@@ -33,13 +30,5 @@ public class Genre {
 
     public void setGenre(String genre) {
         this.genre = genre;
-    }
-
-    public Set<Movie> getMovies() {
-        return movies;
-    }
-
-    public void setMovies(Set<Movie> movies) {
-        this.movies = movies;
     }
 }
