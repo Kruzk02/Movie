@@ -1,9 +1,6 @@
 package com.app.Router;
 
-import com.app.Handler.ActorHandler;
-import com.app.Handler.DirectorHandler;
-import com.app.Handler.MovieHandler;
-import com.app.Handler.RatingHandler;
+import com.app.Handler.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,13 +17,15 @@ public class Router {
     private final ActorHandler actorHandler;
     private final MovieHandler movieHandler;
     private final RatingHandler ratingHandler;
+    private final GenreHandler genreHandler;
 
     @Autowired
-    public Router(DirectorHandler directorHandler, ActorHandler actorHandler, MovieHandler movieHandler, RatingHandler ratingHandler) {
+    public Router(DirectorHandler directorHandler, ActorHandler actorHandler, MovieHandler movieHandler, RatingHandler ratingHandler, GenreHandler genreHandler) {
         this.directorHandler = directorHandler;
         this.actorHandler = actorHandler;
         this.movieHandler = movieHandler;
         this.ratingHandler = ratingHandler;
+        this.genreHandler = genreHandler;
     }
 
     @Bean
@@ -66,5 +65,13 @@ public class Router {
                 .route(GET("/ratings"),ratingHandler::findAll)
                 .andRoute(GET("/ratings/{id}"),ratingHandler::findById)
                 .andRoute(POST("/ratings"),ratingHandler::saveMovieRating);
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> genreRouter(){
+        return RouterFunctions
+                .route(GET("/genres"),genreHandler::findAll)
+                .andRoute(GET("/genres/{id}"),genreHandler::findById)
+                .andRoute(POST("/genres"),genreHandler::saveGenreMovie);
     }
 }
