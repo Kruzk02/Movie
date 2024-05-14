@@ -1,9 +1,9 @@
 package com.app.Handler;
 
 import com.app.DTO.MovieRatingDTO;
-import com.app.DTO.RatingDTO;
 import com.app.Entity.Movie;
 import com.app.Entity.Rating;
+import com.app.Service.MovieRatingService;
 import com.app.Service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,10 +16,12 @@ import reactor.core.publisher.Mono;
 public class RatingHandler {
 
     private final RatingService ratingService;
+    private final MovieRatingService movieRatingService;
 
     @Autowired
-    public RatingHandler(RatingService ratingService) {
+    public RatingHandler(RatingService ratingService, MovieRatingService movieRatingService) {
         this.ratingService = ratingService;
+        this.movieRatingService = movieRatingService;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request){
@@ -36,7 +38,7 @@ public class RatingHandler {
 
     public Mono<ServerResponse> saveMovieRating(ServerRequest request){
         Mono<MovieRatingDTO> ratingMono = request.bodyToMono(MovieRatingDTO.class);
-        return ratingMono.flatMap(movieRatingDTO -> ratingService.saveMovieRating (movieRatingDTO)
+        return ratingMono.flatMap(movieRatingDTO -> movieRatingService.save (movieRatingDTO)
                 .flatMap(savedRating -> ServerResponse.ok().bodyValue(savedRating)));
     }
 }
