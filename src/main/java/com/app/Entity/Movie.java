@@ -19,15 +19,8 @@ public class Movie {
     @Column("length")
     private Long movie_length;
 
-    @Column("director_id")
-    private Long director_id;
-    @Column("rating_id")
-    private Long rating_id;
-    @Column("genre_id")
-    private Long genre_id;
-
     @Transient
-    private Director director;
+    private Set<Director> director;
     @Transient
     private Set<Rating> ratings;
     @Transient
@@ -36,14 +29,14 @@ public class Movie {
     public Movie() {
     }
 
-    public Movie(Long id, String title, LocalDate release_year, Long movie_length, Long director_id, Long rating_id, Long genre_id) {
+    public Movie(Long id, String title, LocalDate release_year, Long movie_length, Set<Director> director, Set<Rating> ratings, Set<Genre> genres) {
         this.id = id;
         this.title = title;
         this.release_year = release_year;
         this.movie_length = movie_length;
-        this.director_id = director_id;
-        this.rating_id = rating_id;
-        this.genre_id = genre_id;
+        this.director = director;
+        this.ratings = ratings;
+        this.genres = genres;
     }
 
     public Long getId() {
@@ -78,35 +71,11 @@ public class Movie {
         this.movie_length = movie_length;
     }
 
-    public Long getDirector_id() {
-        return director_id;
-    }
-
-    public void setDirector_id(Long director_id) {
-        this.director_id = director_id;
-    }
-
-    public Long getRating_id() {
-        return rating_id;
-    }
-
-    public void setRating_id(Long rating_id) {
-        this.rating_id = rating_id;
-    }
-
-    public Long getGenre_id() {
-        return genre_id;
-    }
-
-    public void setGenre_id(Long genre_id) {
-        this.genre_id = genre_id;
-    }
-
-    public Director getDirector() {
+    public Set<Director> getDirector() {
         return director;
     }
 
-    public void setDirector(Director director) {
+    public void setDirector(Set<Director> director) {
         this.director = director;
     }
 
