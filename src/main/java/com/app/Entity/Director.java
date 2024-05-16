@@ -16,7 +16,7 @@ public class Director {
     private String firstName;
     @Column("last_name")
     private String lastName;
-    @Column("birthdate")
+    @Column("birth_date")
     private LocalDate birthDate;
     @Column("nationality")
     private Nationality nationality;
