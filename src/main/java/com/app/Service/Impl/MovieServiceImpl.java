@@ -1,36 +1,35 @@
 package com.app.Service.Impl;
 
 import com.app.DTO.MovieDTO;
-import com.app.Entity.Genre;
-import com.app.Entity.Movie;
-import com.app.Entity.Rating;
-import com.app.Expection.GenreNotFound;
+import com.app.Entity.*;
 import com.app.Expection.MovieNotFound;
-import com.app.Expection.RatingNotFound;
 import com.app.Mapper.MovieMapper;
-import com.app.Repository.GenreRepository;
-import com.app.Repository.MovieRepository;
-import com.app.Repository.RatingRepository;
+import com.app.Repository.*;
 import com.app.Service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class MovieServiceImpl implements MovieService {
 
     private final MovieRepository movieRepository;
+    private final DirectorRepository directorRepository;
+    private final DirectorMovieRepository directorMovieRepository;
     private final GenreRepository genreRepository;
-    private final RatingRepository ratingRepository;
+    private final GenreMovieRepository genreMovieRepository;
 
     @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository, GenreRepository genreRepository, RatingRepository ratingRepository) {
+    public MovieServiceImpl(MovieRepository movieRepository, DirectorRepository directorRepository, DirectorMovieRepository directorMovieRepository, GenreRepository genreRepository, GenreMovieRepository genreMovieRepository, MovieRatingPkRepository movieRatingPkRepository) {
         this.movieRepository = movieRepository;
+        this.directorRepository = directorRepository;
+        this.directorMovieRepository = directorMovieRepository;
         this.genreRepository = genreRepository;
-        this.ratingRepository = ratingRepository;
+        this.genreMovieRepository = genreMovieRepository;
     }
 
     @Override
@@ -49,63 +48,116 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public Flux<Movie> findByGenreId(Long genreId) {
-        return movieRepository.findByGenreId(genreId)
+        return genreMovieRepository.findAllMovieByGenreId(genreId)
+                .flatMap(movie -> {
+                    Mono<Set<Genre>> genresMono = genreMovieRepository.findAllByMovieId(movie.getId())
+                            .collectList()
+                            .map(HashSet::new);
+
+                    Mono<Set<Director>> directorsMono = directorMovieRepository.findAllByMovieId(movie.getId())
+                            .collectList()
+                            .map(HashSet::new);
+
+                    return Mono.zip(genresMono,directorsMono)
+                            .map(tuple -> {
+                                Set<Genre> genres = tuple.getT1();
+                                Set<Director> directors = tuple.getT2();
+                                movie.setGenres(genres);
+                                movie.setDirector(directors);
+                                return movie;
+                            });
+                })
                 .log("Find movie with a genre id: " + genreId);
     }
 
     @Override
     public Mono<Movie> findById(Long id) {
         return movieRepository.findById(id)
-                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
+                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with id: " + id)))
                 .flatMap(movie -> {
-                    Mono<Genre> genreMono = genreRepository.findById(movie.getGenre_id())
-                            .switchIfEmpty(Mono.error(new GenreNotFound("Genre Not Found For Movie")));
-                    Mono<Rating> ratingMono = ratingRepository.findById(movie.getRating_id())
-                            .switchIfEmpty(Mono.error(new RatingNotFound("Rating Not Found For Movie")));
-                    return Mono.zip(Mono.just(movie), genreMono, ratingMono)
+                    Mono<Set<Genre>> genresMono = genreMovieRepository.findAllByMovieId(movie.getId())
+                            .collectList()
+                            .map(HashSet::new);
+
+                    Mono<Set<Director>> directorsMono = directorMovieRepository.findAllByMovieId(movie.getId())
+                            .collectList()
+                            .map(HashSet::new);
+
+                    return Mono.zip(genresMono, directorsMono)
                             .map(tuple -> {
-                                Movie foundMovie = tuple.getT1();
-                                Genre genre = tuple.getT2();
-                                Rating rating = tuple.getT3();
-                                foundMovie.setGenres(Collections.singleton(genre));
-                                foundMovie.setRatings(Collections.singleton(rating));
-                                return foundMovie;
+                                Set<Genre> genres = tuple.getT1();
+                                Set<Director> directors = tuple.getT2();
+                                movie.setGenres(genres);
+                                movie.setDirector(directors);
+                                return movie;
                             });
                 })
                 .log("Find movie with id: " + id);
     }
 
+
     @Override
     public Mono<Movie> save(MovieDTO movieDTO) {
         Movie movie = MovieMapper.INSTANCE.mapDtoToEntity(movieDTO);
-        return movieRepository.save(movie)
+
+        Mono<Set<Genre>> genres = genreRepository.findAllById(movieDTO.getGenre_id()).collect(Collectors.toSet());
+        Mono<Set<Director>> directors = directorRepository.findAllById(movieDTO.getDirector_id()).collect(Collectors.toSet());
+
+        return Mono.zip(genres,directors)
+                .flatMap(tuple -> {
+                    Set<Genre> genre = tuple.getT1();
+                    Set<Director> director = tuple.getT2();
+                    movie.setGenres(genre);
+                    movie.setDirector(director);
+                    return movieRepository.save(movie)
+                            .flatMap(savedMovie -> {
+                                List<GenreMoviePK> genreMovies = movieDTO.getGenre_id().stream()
+                                        .map(genreId -> new GenreMoviePK(genreId, savedMovie.getId()))
+                                        .collect(Collectors.toList());
+                                return genreMovieRepository.saveAll(genreMovies)
+                                        .then(Mono.just(savedMovie));
+                            })
+                            .flatMap(savedMovie -> {
+                                List<DirectorMoviePK> directorMovies = movieDTO.getDirector_id().stream()
+                                        .map(directorId -> new DirectorMoviePK(directorId, savedMovie.getId()))
+                                        .collect(Collectors.toList());
+                                return directorMovieRepository.saveAll(directorMovies)
+                                        .then(Mono.just(savedMovie));
+                            });
+                })
+                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to saved a movie: " + e)))
                 .log("Save a new movie");
     }
 
     @Override
     public Mono<Movie> update(Long id, MovieDTO movieDTO) {
         return movieRepository.findById(id)
-                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
+                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with id: " + id)))
                 .flatMap(existingMovie -> {
                     existingMovie.setTitle(movieDTO.getTitle());
                     existingMovie.setRelease_year(movieDTO.getRelease_year());
                     existingMovie.setMovie_length(movieDTO.getMovie_length());
 
-                    Mono<Rating> ratingMono = ratingRepository.findById(movieDTO.getRating_id())
-                            .switchIfEmpty(Mono.error(new RatingNotFound("Rating Not Found For Movie " + id)));
+                    Mono<Set<Genre>> genres = genreRepository.findAllById(movieDTO.getGenre_id())
+                            .collectList()
+                            .map(HashSet::new);
 
-                    Mono<Genre> genreMono = genreRepository.findById(movieDTO.getGenre_id())
-                            .switchIfEmpty(Mono.error(new GenreNotFound("Genre Not Found For Movie " + id)));
+                    Mono<Set<Director>> directors = directorRepository.findAllById(movieDTO.getDirector_id())
+                            .collectList()
+                            .map(HashSet::new);
 
-                    return Mono.zip(ratingMono, genreMono)
+                    return Mono.zip(genres, directors)
                             .flatMap(tuple -> {
-                                existingMovie.setRatings(Collections.singleton(tuple.getT1()));
-                                existingMovie.setGenres(Collections.singleton(tuple.getT2()));
+                                Set<Genre> genreSet = tuple.getT1();
+                                Set<Director> directorSet = tuple.getT2();
+                                existingMovie.setGenres(genreSet);
+                                existingMovie.setDirector(directorSet);
                                 return movieRepository.save(existingMovie);
                             });
                 })
-                .log("Update a Movie with a id: " + id);
+                .log("Update a Movie with id: " + id);
     }
+
 
     @Override
     public Mono<Void> delete(Long id) {
