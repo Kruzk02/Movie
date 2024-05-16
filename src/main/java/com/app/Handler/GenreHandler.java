@@ -1,8 +1,6 @@
 package com.app.Handler;
 
-import com.app.DTO.GenreMovieDTO;
 import com.app.Entity.Genre;
-import com.app.Service.GenreMovieService;
 import com.app.Service.GenreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,12 +12,10 @@ import reactor.core.publisher.Mono;
 public class GenreHandler {
 
     private final GenreService genreService;
-    private final GenreMovieService genreMovieService;
 
     @Autowired
-    public GenreHandler(GenreService genreService, GenreMovieService genreMovieService) {
+    public GenreHandler(GenreService genreService) {
         this.genreService = genreService;
-        this.genreMovieService = genreMovieService;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request){
@@ -31,11 +27,5 @@ public class GenreHandler {
         Mono<Genre> genreMono = genreService.findById(id);
         return genreMono.flatMap(genre -> ServerResponse.ok().bodyValue(genre))
                 .switchIfEmpty(ServerResponse.notFound().build());
-    }
-
-    public Mono<ServerResponse> saveGenreMovie(ServerRequest request){
-        Mono<GenreMovieDTO> genreMovieDTOMono = request.bodyToMono(GenreMovieDTO.class);
-        return genreMovieDTOMono.flatMap(genreMovieDTO -> genreMovieService.save(genreMovieDTO)
-                .flatMap(saved -> ServerResponse.ok().bodyValue(saved)));
     }
 }
