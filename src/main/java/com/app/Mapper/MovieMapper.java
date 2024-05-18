@@ -12,7 +12,7 @@ public interface MovieMapper {
     MovieMapper INSTANCE = Mappers.getMapper(MovieMapper.class);
 
     @Mapping(source = "title",target = "title")
-    @Mapping(source = "release_year",target = "release_year")
-    @Mapping(source = "movie_length",target = "movie_length")
+    @Mapping(source = "release_year",target = "releaseYear")
+    @Mapping(source = "movie_length",target = "movieLength")
     Movie mapDtoToEntity(MovieDTO movieDTO);
 }
