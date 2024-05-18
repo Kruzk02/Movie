@@ -5,22 +5,23 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Set;
 
 @Table("movie")
-public class Movie {
+public class Movie implements Serializable {
     @Id
     private Long id;
     @Column("title")
     private String title;
     @Column("release_year")
-    private LocalDate release_year;
+    private LocalDate releaseYear;
     @Column("length")
-    private Long movie_length;
+    private Long movieLength;
 
     @Transient
-    private Set<Director> director;
+    private Set<Director> directors;
     @Transient
     private Set<Rating> ratings;
     @Transient
@@ -29,12 +30,12 @@ public class Movie {
     public Movie() {
     }
 
-    public Movie(Long id, String title, LocalDate release_year, Long movie_length, Set<Director> director, Set<Rating> ratings, Set<Genre> genres) {
+    public Movie(Long id, String title, LocalDate releaseYear, Long movieLength, Set<Director> directors, Set<Rating> ratings, Set<Genre> genres) {
         this.id = id;
         this.title = title;
-        this.release_year = release_year;
-        this.movie_length = movie_length;
-        this.director = director;
+        this.releaseYear = releaseYear;
+        this.movieLength = movieLength;
+        this.directors = directors;
         this.ratings = ratings;
         this.genres = genres;
     }
@@ -55,28 +56,28 @@ public class Movie {
         this.title = title;
     }
 
-    public LocalDate getRelease_year() {
-        return release_year;
+    public LocalDate getReleaseYear() {
+        return releaseYear;
     }
 
-    public void setRelease_year(LocalDate release_year) {
-        this.release_year = release_year;
+    public void setReleaseYear(LocalDate releaseYear) {
+        this.releaseYear = releaseYear;
     }
 
-    public Long getMovie_length() {
-        return movie_length;
+    public Long getMovieLength() {
+        return movieLength;
     }
 
-    public void setMovie_length(Long movie_length) {
-        this.movie_length = movie_length;
+    public void setMovieLength(Long movieLength) {
+        this.movieLength = movieLength;
     }
 
-    public Set<Director> getDirector() {
-        return director;
+    public Set<Director> getDirectors() {
+        return directors;
     }
 
-    public void setDirector(Set<Director> director) {
-        this.director = director;
+    public void setDirectors(Set<Director> directors) {
+        this.directors = directors;
     }
 
     public Set<Rating> getRatings() {
