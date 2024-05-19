@@ -1,16 +1,16 @@
 package com.app.DTO;
 
-import com.app.Entity.Movie;
 
 public class RatingDTO {
 
-    private Double rating;
+    private Long ratingId;
+    private Long movieId;
 
-    public Double getRating() {
-        return rating;
+    public Long getRatingId() {
+        return ratingId;
     }
 
-    public void setRating(Double rating) {
-        this.rating = rating;
+    public Long getMovieId() {
+        return movieId;
     }
 }
