@@ -26,11 +26,13 @@ public class Movie implements Serializable {
     private Set<Rating> ratings;
     @Transient
     private Set<Genre> genres;
+    @Transient
+    private Set<Actor> actors;
 
     public Movie() {
     }
 
-    public Movie(Long id, String title, LocalDate releaseYear, Long movieLength, Set<Director> directors, Set<Rating> ratings, Set<Genre> genres) {
+    public Movie(Long id, String title, LocalDate releaseYear, Long movieLength, Set<Director> directors, Set<Rating> ratings, Set<Genre> genres, Set<Actor> actors) {
         this.id = id;
         this.title = title;
         this.releaseYear = releaseYear;
@@ -38,6 +40,7 @@ public class Movie implements Serializable {
         this.directors = directors;
         this.ratings = ratings;
         this.genres = genres;
+        this.actors = actors;
     }
 
     public Long getId() {
@@ -94,5 +97,27 @@ public class Movie implements Serializable {
 
     public void setGenres(Set<Genre> genres) {
         this.genres = genres;
+    }
+
+    public Set<Actor> getActors() {
+        return actors;
+    }
+
+    public void setActors(Set<Actor> actors) {
+        this.actors = actors;
+    }
+
+    @Override
+    public String toString() {
+        return "Movie{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", releaseYear=" + releaseYear +
+                ", movieLength=" + movieLength +
+                ", directors=" + directors +
+                ", ratings=" + ratings +
+                ", genres=" + genres +
+                ", actors=" + actors +
+                '}';
     }
 }
