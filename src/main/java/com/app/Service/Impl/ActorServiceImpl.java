@@ -8,28 +8,45 @@ import com.app.Mapper.ActorMapper;
 import com.app.Repository.ActorRepository;
 import com.app.Service.ActorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @Service
 public class ActorServiceImpl implements ActorService {
     private final ActorRepository actorRepository;
+    private final ReactiveRedisTemplate<String,Actor> redisTemplate;
 
     @Autowired
-    public ActorServiceImpl(ActorRepository actorRepository) {
+    public ActorServiceImpl(ActorRepository actorRepository, ReactiveRedisTemplate<String, Actor> redisTemplate) {
         this.actorRepository = actorRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
     public Flux<Actor> findAll() {
-        return actorRepository.findAll().log("Find all Actor");
+        return redisTemplate.keys("actor:*")
+                .flatMap(key -> redisTemplate.opsForValue().get(key))
+                .thenMany(actorRepository.findAll()
+                        .flatMap(actor -> redisTemplate
+                                .opsForValue()
+                                .set("actor:" + actor.getId(),actor, Duration.ofHours(24))
+                                .thenReturn(actor)))
+                .log("Find all Actor");
     }
 
     @Override
     public Mono<Actor> findById(Long id) {
-        return actorRepository.findById(id)
-                .switchIfEmpty(Mono.error(new ActorNotFound("Actor not found with id: " + id)))
+        return redisTemplate.opsForValue().get("actor:"+ id)
+                .switchIfEmpty(actorRepository.findById(id)
+                        .switchIfEmpty(Mono.error(new ActorNotFound("Actor not found with a id: " + id)))
+                        .flatMap(actor -> redisTemplate
+                                .opsForValue()
+                                .set("actor:" + actor.getId(),actor, Duration.ofHours(24))
+                                .thenReturn(actor)))
                 .log("Find a Actor with a id: " + id);
     }
 
