@@ -61,10 +61,4 @@ public class RedisConfig {
         return new ReactiveRedisTemplate<>(factory, context);
     }
 
-    @Bean
-    public ObjectMapper objectMapper(){
-        return JsonMapper.builder()
-                .findAndAddModules()
-                .build();
-    }
 }
