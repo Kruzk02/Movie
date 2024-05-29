@@ -52,7 +52,6 @@ public class Router {
     public RouterFunction<ServerResponse> movieRouter(){
         return RouterFunctions
                 .route(GET("/movies"),movieHandler::findAll)
-                .andRoute(GET("/movies/genres/{genreId}"),movieHandler::findByGenre)
                 .andRoute(GET("/movies/{id}"),movieHandler::findById)
                 .andRoute(POST("/movies"),movieHandler::save)
                 .andRoute(PUT("/movies/{id}"),movieHandler::update)
@@ -71,7 +70,6 @@ public class Router {
     public RouterFunction<ServerResponse> genreRouter(){
         return RouterFunctions
                 .route(GET("/genres"),genreHandler::findAll)
-                .andRoute(GET("/genres/{id}"),genreHandler::findById)
-                .andRoute(POST("/genres"),genreHandler::saveGenreMovie);
+                .andRoute(GET("/genres/{id}"),genreHandler::findById);
     }
 }
