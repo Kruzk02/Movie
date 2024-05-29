@@ -7,7 +7,6 @@ import reactor.core.publisher.Mono;
 
 public interface MovieService {
     Flux<Movie> findAll();
-    Flux<Movie> findByGenreId(Long genreId);
     Mono<Movie> findById(Long id);
     Mono<Movie> save(MovieDTO movieDTO);
     Mono<Movie> update(Long id,MovieDTO movieDTO);
