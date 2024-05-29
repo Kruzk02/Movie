@@ -13,30 +13,16 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class MovieServiceImpl implements MovieService {
     
     private final MovieRepository movieRepository;
-    private final DirectorRepository directorRepository;
-    private final DirectorMovieRepository directorMovieRepository;
-    private final GenreRepository genreRepository;
-    private final GenreMovieRepository genreMovieRepository;
-    private final ActorRepository actorRepository;
-    private final ActorMovieRepository actorMovieRepository;
     private final ReactiveRedisTemplate<String,Movie> redisTemplate;
 
     @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository, DirectorRepository directorRepository, DirectorMovieRepository directorMovieRepository, GenreRepository genreRepository, GenreMovieRepository genreMovieRepository, MovieRatingPkRepository movieRatingPkRepository, ActorRepository actorRepository, ActorMovieRepository actorMovieRepository, ReactiveRedisTemplate<String, Movie> redisTemplate) {
+    public MovieServiceImpl(MovieRepository movieRepository, ReactiveRedisTemplate<String, Movie> redisTemplate) {
         this.movieRepository = movieRepository;
-        this.directorRepository = directorRepository;
-        this.directorMovieRepository = directorMovieRepository;
-        this.genreRepository = genreRepository;
-        this.genreMovieRepository = genreMovieRepository;
-        this.actorRepository = actorRepository;
-        this.actorMovieRepository = actorMovieRepository;
         this.redisTemplate = redisTemplate;
     }
 
@@ -46,23 +32,12 @@ public class MovieServiceImpl implements MovieService {
                 .flatMap(key -> redisTemplate.opsForValue().get(key))
                 .thenMany(
                         movieRepository.findAll()
-                                .flatMap(this::findMovieDetails)
+                                .flatMap(movie -> redisTemplate
+                                        .opsForValue()
+                                        .set("movie:" + movie.getId(), movie, Duration.ofHours(24))
+                                        .thenReturn(movie))
                 )
                 .log("Find all movie");
-    }
-
-    @Override
-    public Flux<Movie> findByGenreId(Long genreId) {
-        return redisTemplate.keys("movie:*")
-                .flatMap(key -> redisTemplate.opsForValue().get(key)
-                        .filter(movie -> movie.getGenres().stream()
-                                .anyMatch(genre -> genre.getId().equals(genreId)))
-                )
-                .switchIfEmpty(
-                        genreMovieRepository.findAllMovieByGenreId(genreId)
-                                .flatMap(this::findMovieDetails)
-                )
-                .log("Find movie with genre id: " + genreId);
     }
 
     @Override
@@ -71,7 +46,10 @@ public class MovieServiceImpl implements MovieService {
                 .switchIfEmpty(
                         movieRepository.findById(id)
                                 .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
-                                .flatMap(this::findMovieDetails)
+                                .flatMap(movie -> redisTemplate
+                                        .opsForValue()
+                                        .set("movie:" + movie.getId(), movie, Duration.ofHours(24))
+                                        .thenReturn(movie))
                 )
                 .log("Find movie with id: " + id);
     }
@@ -79,24 +57,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Mono<Movie> save(MovieDTO movieDTO) {
         Movie movie = MovieMapper.INSTANCE.mapDtoToEntity(movieDTO);
-
-        Mono<Set<Genre>> genres = genreRepository.findAllById(movieDTO.getGenre_id()).collect(Collectors.toSet());
-        Mono<Set<Director>> directors = directorRepository.findAllById(movieDTO.getDirector_id()).collect(Collectors.toSet());
-        Mono<Set<Actor>> actors = actorRepository.findAllById(movieDTO.getActor_id()).collect(Collectors.toSet());
-
-        return Mono.zip(genres,directors,actors)
-                .flatMap(tuple -> {
-                    Set<Genre> genre = tuple.getT1();
-                    Set<Director> director = tuple.getT2();
-                    Set<Actor> actor = tuple.getT3();
-                    movie.setGenres(genre);
-                    movie.setDirectors(director);
-                    movie.setActors(actor);
-
-                    return saveMovieWithAssociations(movie,movieDTO);
-                })
-                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to saved a movie: " + e)))
-                .log("Save a new movie");
+        return movieRepository.save(movie).log("Save a new movie: " + movie);
     }
 
     @Override
@@ -108,30 +69,7 @@ public class MovieServiceImpl implements MovieService {
                     existingMovie.setReleaseYear(movieDTO.getRelease_year());
                     existingMovie.setMovieLength(movieDTO.getMovie_length());
 
-                    Mono<Set<Genre>> genres = genreRepository.findAllById(movieDTO.getGenre_id())
-                            .collectList()
-                            .map(HashSet::new);
-
-                    Mono<Set<Director>> directors = directorRepository.findAllById(movieDTO.getDirector_id())
-                            .collectList()
-                            .map(HashSet::new);
-
-                    Mono<Set<Actor>> actors = actorRepository.findAllById(movieDTO.getActor_id())
-                            .collectList()
-                            .map(HashSet::new);
-
-                    return Mono.zip(genres, directors,actors)
-                            .flatMap(tuple -> {
-
-                                Set<Genre> genreSet = tuple.getT1();
-                                Set<Director> directorSet = tuple.getT2();
-                                Set<Actor> actorSet = tuple.getT3();
-                                existingMovie.setGenres(genreSet);
-                                existingMovie.setDirectors(directorSet);
-                                existingMovie.setActors(actorSet);
-
-                                return saveMovieWithAssociations(existingMovie,movieDTO);
-                            });
+                    return movieRepository.save(existingMovie);
                 })
                 .log("Update a Movie with id: " + id);
     }
@@ -143,63 +81,5 @@ public class MovieServiceImpl implements MovieService {
                 .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
                 .flatMap(movieRepository::delete)
                 .log("Delete a movie with a id: " + id);
-    }
-
-    private Mono<Movie> findMovieDetails(Movie movie) {
-        Mono<Set<Genre>> genresMono = genreMovieRepository.findAllByMovieId(movie.getId())
-                .collectList()
-                .map(HashSet::new);
-        Mono<Set<Director>> directorsMono = directorMovieRepository.findAllByMovieId(movie.getId())
-                .collectList()
-                .map(HashSet::new);
-        Mono<Set<Actor>> actorsMono = actorMovieRepository.findAllByMovieId(movie.getId())
-                .collectList()
-                .map(HashSet::new);
-
-        return Mono.zip(genresMono, directorsMono, actorsMono)
-                .flatMap(tuple -> {
-                    Set<Genre> genres = tuple.getT1();
-                    Set<Director> directors = tuple.getT2();
-                    Set<Actor> actors = tuple.getT3();
-
-                    movie.setGenres(genres);
-                    movie.setDirectors(directors);
-                    movie.setActors(actors);
-
-                    return redisTemplate
-                            .opsForValue()
-                            .set("movie:" + movie.getId(), movie, Duration.ofHours(24))
-                            .thenReturn(movie);
-                });
-    }
-
-    private Mono<Movie> saveMovieWithAssociations(Movie movie,MovieDTO movieDTO){
-        return movieRepository.save(movie)
-                .flatMap(savedMovie -> saveGenreWithAssociations(savedMovie,movieDTO)
-                        .then(saveDirectorWithAssociations(savedMovie,movieDTO))
-                        .then(saveActorWithAssociations(savedMovie,movieDTO))
-                        .thenReturn(savedMovie)
-                );
-    }
-
-    private Mono<Void> saveGenreWithAssociations(Movie savedMovie,MovieDTO movieDTO){
-        List<GenreMoviePK> genreMovies = movieDTO.getGenre_id().stream()
-                .map(genreId -> new GenreMoviePK(genreId,savedMovie.getId()))
-                .collect(Collectors.toList());
-        return genreMovieRepository.saveAll(genreMovies).then();
-    }
-
-    private Mono<Void> saveDirectorWithAssociations(Movie savedMovie,MovieDTO movieDTO){
-        List<DirectorMoviePK> directorMovies = movieDTO.getDirector_id().stream()
-                .map(directorId -> new DirectorMoviePK(directorId,savedMovie.getId()))
-                .collect(Collectors.toList());
-        return directorMovieRepository.saveAll(directorMovies).then();
-    }
-
-    private Mono<Void> saveActorWithAssociations(Movie savedMovie, MovieDTO movieDTO){
-        List<ActorMoviePK> actorMovies = movieDTO.getActor_id().stream()
-                .map(actorId -> new ActorMoviePK(actorId,savedMovie.getId()))
-                .collect(Collectors.toList());
-        return actorMovieRepository.saveAll(actorMovies).then();
     }
 }
