@@ -1,9 +1,9 @@
 package com.app.DTO;
 
+import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Set;
 
-public class MovieDTO {
+public class MovieDTO implements Serializable {
 
     private String title;
     private LocalDate release_year;
