@@ -6,6 +6,7 @@ import com.app.Expection.MovieNotFound;
 import com.app.Mapper.MovieMapper;
 import com.app.Repository.*;
 import com.app.Service.MovieService;
+import com.app.messaging.producer.MovieProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,13 @@ import java.time.Duration;
 public class MovieServiceImpl implements MovieService {
     
     private final MovieRepository movieRepository;
+    private final MovieProducer movieProducer;
     private final ReactiveRedisTemplate<String,Movie> redisTemplate;
 
     @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository, ReactiveRedisTemplate<String, Movie> redisTemplate) {
+    public MovieServiceImpl(MovieRepository movieRepository, MovieProducer movieProducer, ReactiveRedisTemplate<String, Movie> redisTemplate) {
         this.movieRepository = movieRepository;
+        this.movieProducer = movieProducer;
         this.redisTemplate = redisTemplate;
     }
 
@@ -57,7 +60,9 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Mono<Movie> save(MovieDTO movieDTO) {
         Movie movie = MovieMapper.INSTANCE.mapDtoToEntity(movieDTO);
-        return movieRepository.save(movie).log("Save a new movie: " + movie);
+        return movieRepository.save(movie)
+                .doOnNext(movieProducer::sendMovie)
+                .log("Save a new movie: " + movie);
     }
 
     @Override
