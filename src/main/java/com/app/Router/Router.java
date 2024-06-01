@@ -45,7 +45,8 @@ public class Router {
                 .andRoute(GET("/actors/{id}"),actorHandler::findById)
                 .andRoute(POST("/actors"),actorHandler::save)
                 .andRoute(PUT("/actors/{id}"),actorHandler::update)
-                .andRoute(DELETE("/actors/{id}"),actorHandler::delete);
+                .andRoute(DELETE("/actors/{id}"),actorHandler::delete)
+                .andRoute(POST("/actors/movies"),actorHandler::saveActorMovie);
     }
 
     @Bean
@@ -70,6 +71,7 @@ public class Router {
     public RouterFunction<ServerResponse> genreRouter(){
         return RouterFunctions
                 .route(GET("/genres"),genreHandler::findAll)
-                .andRoute(GET("/genres/{id}"),genreHandler::findById);
+                .andRoute(GET("/genres/{id}"),genreHandler::findById)
+                .andRoute(POST("/genres/movies"),genreHandler::save);
     }
 }
