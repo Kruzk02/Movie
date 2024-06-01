@@ -1,9 +1,12 @@
 package com.app.Handler;
 
 import com.app.DTO.DirectorDTO;
+import com.app.DTO.DirectorMovieDTO;
 import com.app.Entity.Director;
 import com.app.Service.DirectorService;
+import com.app.messaging.processor.MovieProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -14,10 +17,12 @@ import reactor.core.publisher.Mono;
 public class DirectorHandler {
 
     private final DirectorService directorService;
+    private final MovieProcessor movieProcessor;
 
     @Autowired
-    public DirectorHandler(DirectorService directorService) {
+    public DirectorHandler(DirectorService directorService, MovieProcessor movieProcessor) {
         this.directorService = directorService;
+        this.movieProcessor = movieProcessor;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request){
@@ -51,5 +56,14 @@ public class DirectorHandler {
         return directorService.delete(id)
                 .then(ServerResponse.ok().build())
                 .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    public Mono<ServerResponse> saveDirectorMovie(ServerRequest request){
+        return request.bodyToMono(DirectorMovieDTO.class)
+                .flatMap(directorMovieDTO -> movieProcessor.getMovie()
+                        .flatMap(movie -> directorService.saveDirectorMovie(directorMovieDTO.getDirectorId(),movie.getId()))
+                        .flatMap(savedDirectorMovie -> ServerResponse.ok().bodyValue(savedDirectorMovie))
+                        .switchIfEmpty(ServerResponse.notFound().build())
+                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(error)));
     }
 }
