@@ -2,10 +2,12 @@ package com.app.Service.Impl;
 
 import com.app.DTO.DirectorDTO;
 import com.app.Entity.Director;
+import com.app.Entity.DirectorMoviePK;
 import com.app.Entity.Nationality;
 import com.app.Expection.ActorNotFound;
 import com.app.Expection.DirectorNotFound;
 import com.app.Mapper.DirectorMapper;
+import com.app.Repository.DirectorMovieRepository;
 import com.app.Repository.DirectorRepository;
 import com.app.Service.DirectorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +22,13 @@ import java.time.Duration;
 public class DirectorServiceImpl implements DirectorService {
 
     private final DirectorRepository directorRepository;
+    private final DirectorMovieRepository directorMovieRepository;
     private final ReactiveRedisTemplate<String,Director> redisTemplate;
 
     @Autowired
-    public DirectorServiceImpl(DirectorRepository directorRepository, ReactiveRedisTemplate<String, Director> redisTemplate) {
+    public DirectorServiceImpl(DirectorRepository directorRepository, DirectorMovieRepository directorMovieRepository, ReactiveRedisTemplate<String, Director> redisTemplate) {
         this.directorRepository = directorRepository;
+        this.directorMovieRepository = directorMovieRepository;
         this.redisTemplate = redisTemplate;
     }
 
@@ -79,5 +83,11 @@ public class DirectorServiceImpl implements DirectorService {
                 .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
                 .flatMap(directorRepository::delete)
                 .log("Delete a director with a id: " + id);
+    }
+
+    @Override
+    public Mono<DirectorMoviePK> saveDirectorMovie(Long directorId, Long movieId) {
+        return directorMovieRepository.save(new DirectorMoviePK(directorId,movieId))
+                .log("Save director to movie");
     }
 }
