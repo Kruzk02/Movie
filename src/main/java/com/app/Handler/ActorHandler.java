@@ -1,9 +1,13 @@
 package com.app.Handler;
 
 import com.app.DTO.ActorDTO;
+import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
 import com.app.Service.ActorService;
+import com.app.messaging.processor.MovieProcessor;
+import net.sf.jsqlparser.schema.Server;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -14,10 +18,12 @@ import reactor.core.publisher.Mono;
 public class ActorHandler {
 
     private final ActorService actorService;
+    private final MovieProcessor movieProcessor;
 
     @Autowired
-    public ActorHandler(ActorService actorService) {
+    public ActorHandler(ActorService actorService, MovieProcessor movieProcessor) {
         this.actorService = actorService;
+        this.movieProcessor = movieProcessor;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request){
@@ -51,5 +57,14 @@ public class ActorHandler {
         return actorService.delete(id)
                 .then(ServerResponse.ok().build())
                 .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    public Mono<ServerResponse> saveActorMovie(ServerRequest request){
+        return request.bodyToMono(ActorMovieDTO.class)
+                .flatMap(actorMovieDTO -> movieProcessor.getMovie()
+                        .flatMap(movie -> actorService.saveActorMovie(actorMovieDTO.getActorId(),movie.getId()))
+                        .flatMap(savedActorMovie -> ServerResponse.ok().bodyValue(savedActorMovie))
+                        .switchIfEmpty(ServerResponse.notFound().build())
+                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(error)));
     }
 }
