@@ -2,9 +2,11 @@ package com.app.Handler;
 
 import com.app.DTO.GenreDTO;
 import com.app.Entity.Genre;
+import com.app.Entity.Movie;
 import com.app.Service.GenreService;
-import com.app.messaging.processor.MovieProcessor;
+import com.app.messaging.processor.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -15,12 +17,12 @@ import reactor.core.publisher.Mono;
 public class GenreHandler {
 
     private final GenreService genreService;
-    private final MovieProcessor movieProcessor;
+    private final Processor<Movie> processor;
 
     @Autowired
-    public GenreHandler(GenreService genreService, MovieProcessor movieProcessor) {
+    public GenreHandler(GenreService genreService,@Qualifier("GenreProcessor") Processor<Movie> processor) {
         this.genreService = genreService;
-        this.movieProcessor = movieProcessor;
+        this.processor = processor;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request){
@@ -36,7 +38,7 @@ public class GenreHandler {
 
     public Mono<ServerResponse> save(ServerRequest request){
         return request.bodyToMono(GenreDTO.class)
-                .flatMap(genreDTO -> movieProcessor.getMovie()
+                .flatMap(genreDTO -> processor.getMovie()
                         .flatMap(movie -> genreService.save(genreDTO.getGenreId(),movie.getId()))
                         .flatMap(savedGenreMovie -> ServerResponse.ok().bodyValue(savedGenreMovie))
                         .switchIfEmpty(ServerResponse.notFound().build())
