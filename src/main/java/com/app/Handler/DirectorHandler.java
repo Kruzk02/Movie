@@ -3,9 +3,11 @@ package com.app.Handler;
 import com.app.DTO.DirectorDTO;
 import com.app.DTO.DirectorMovieDTO;
 import com.app.Entity.Director;
+import com.app.Entity.Movie;
 import com.app.Service.DirectorService;
-import com.app.messaging.processor.MovieProcessor;
+import com.app.messaging.processor.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -17,12 +19,12 @@ import reactor.core.publisher.Mono;
 public class DirectorHandler {
 
     private final DirectorService directorService;
-    private final MovieProcessor movieProcessor;
+    private final Processor<Movie> processor;
 
     @Autowired
-    public DirectorHandler(DirectorService directorService, MovieProcessor movieProcessor) {
+    public DirectorHandler(DirectorService directorService,@Qualifier("DirectorProcessor") Processor<Movie> processor) {
         this.directorService = directorService;
-        this.movieProcessor = movieProcessor;
+        this.processor = processor;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request){
@@ -60,10 +62,10 @@ public class DirectorHandler {
 
     public Mono<ServerResponse> saveDirectorMovie(ServerRequest request){
         return request.bodyToMono(DirectorMovieDTO.class)
-                .flatMap(directorMovieDTO -> movieProcessor.getMovie()
+                .flatMap(directorMovieDTO -> processor.getMovie()
                         .flatMap(movie -> directorService.saveDirectorMovie(directorMovieDTO.getDirectorId(),movie.getId()))
                         .flatMap(savedDirectorMovie -> ServerResponse.ok().bodyValue(savedDirectorMovie))
                         .switchIfEmpty(ServerResponse.notFound().build())
-                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(error)));
+                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage())));
     }
 }

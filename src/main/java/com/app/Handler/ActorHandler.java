@@ -3,10 +3,11 @@ package com.app.Handler;
 import com.app.DTO.ActorDTO;
 import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
+import com.app.Entity.Movie;
 import com.app.Service.ActorService;
-import com.app.messaging.processor.MovieProcessor;
-import net.sf.jsqlparser.schema.Server;
+import com.app.messaging.processor.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -18,12 +19,12 @@ import reactor.core.publisher.Mono;
 public class ActorHandler {
 
     private final ActorService actorService;
-    private final MovieProcessor movieProcessor;
+    private final Processor<Movie> processor;
 
     @Autowired
-    public ActorHandler(ActorService actorService, MovieProcessor movieProcessor) {
+    public ActorHandler(ActorService actorService,@Qualifier("ActorProcessor") Processor<Movie> processor) {
         this.actorService = actorService;
-        this.movieProcessor = movieProcessor;
+        this.processor = processor;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request){
@@ -61,10 +62,10 @@ public class ActorHandler {
 
     public Mono<ServerResponse> saveActorMovie(ServerRequest request){
         return request.bodyToMono(ActorMovieDTO.class)
-                .flatMap(actorMovieDTO -> movieProcessor.getMovie()
+                .flatMap(actorMovieDTO -> processor.getMovie()
                         .flatMap(movie -> actorService.saveActorMovie(actorMovieDTO.getActorId(),movie.getId()))
                         .flatMap(savedActorMovie -> ServerResponse.ok().bodyValue(savedActorMovie))
                         .switchIfEmpty(ServerResponse.notFound().build())
-                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(error)));
+                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving actor: " + error.getMessage())));
     }
 }
