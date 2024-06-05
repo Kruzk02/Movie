@@ -22,7 +22,7 @@ public class ActorHandler {
     private final Processor<Movie> processor;
 
     @Autowired
-    public ActorHandler(ActorService actorService,@Qualifier("ActorProcessor") Processor<Movie> processor) {
+    public ActorHandler(ActorService actorService,@Qualifier("MovieProcessor") Processor<Movie> processor) {
         this.actorService = actorService;
         this.processor = processor;
     }
