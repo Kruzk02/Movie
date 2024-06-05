@@ -20,7 +20,7 @@ public class GenreHandler {
     private final Processor<Movie> processor;
 
     @Autowired
-    public GenreHandler(GenreService genreService,@Qualifier("GenreProcessor") Processor<Movie> processor) {
+    public GenreHandler(GenreService genreService,@Qualifier("MovieProcessor") Processor<Movie> processor) {
         this.genreService = genreService;
         this.processor = processor;
     }

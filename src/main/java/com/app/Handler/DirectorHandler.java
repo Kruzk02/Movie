@@ -22,7 +22,7 @@ public class DirectorHandler {
     private final Processor<Movie> processor;
 
     @Autowired
-    public DirectorHandler(DirectorService directorService,@Qualifier("DirectorProcessor") Processor<Movie> processor) {
+    public DirectorHandler(DirectorService directorService,@Qualifier("MovieProcessor") Processor<Movie> processor) {
         this.directorService = directorService;
         this.processor = processor;
     }

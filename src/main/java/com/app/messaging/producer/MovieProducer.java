@@ -22,7 +22,7 @@ public class MovieProducer {
 
     public void sendMovie(Movie movie){
         try{
-            amqpTemplate.convertAndSend("genre-exchange","movie-routing-key",movie);
+            amqpTemplate.convertAndSend("movie-exchange","movie-routing-key",movie);
             log.info("Successfully send messaging [{}] to movie-queue",movie);
         }catch (AmqpException e){
             log.error("Failed to send messaging [{}] to movie-queue",movie,e);
