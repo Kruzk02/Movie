@@ -4,7 +4,6 @@ import com.app.DTO.DirectorDTO;
 import com.app.Entity.Director;
 import com.app.Entity.DirectorMoviePK;
 import com.app.Entity.Nationality;
-import com.app.Expection.ActorNotFound;
 import com.app.Expection.DirectorNotFound;
 import com.app.Mapper.DirectorMapper;
 import com.app.Repository.DirectorMovieRepository;
@@ -35,25 +34,27 @@ public class DirectorServiceImpl implements DirectorService {
     @Override
     public Flux<Director> findAll() {
         return redisTemplate.keys("director:*")
-                .flatMap(key -> redisTemplate.opsForValue().get(key))
-                .thenMany(directorRepository.findAll()
-                        .flatMap(director -> redisTemplate
-                                .opsForValue()
-                                .set("director:" + director.getId(),director, Duration.ofHours(24))
-                                .thenReturn(director)))
-                .log("Find all directors");
+            .flatMap(key -> redisTemplate.opsForValue().get(key))
+            .thenMany(directorRepository.findAll()
+                .flatMap(director ->
+                    redisTemplate
+                    .opsForValue()
+                    .set("director:" + director.getId(),director, Duration.ofHours(24))
+                    .thenReturn(director)))
+            .log("Find all directors");
     }
 
     @Override
     public Mono<Director> findById(Long id) {
         return redisTemplate.opsForValue().get("director:"+ id)
-                .switchIfEmpty(directorRepository.findById(id)
-                        .switchIfEmpty(Mono.error(new ActorNotFound("Actor not found with a id: " + id)))
-                        .flatMap(director -> redisTemplate
-                                .opsForValue()
-                                .set("actor:" + director.getId(),director, Duration.ofHours(24))
-                                .thenReturn(director)))
-                .log("Find a Director with a id: " + id);
+            .switchIfEmpty(directorRepository.findById(id)
+                .switchIfEmpty(Mono.error(new DirectorNotFound("Director not found with a id: " + id)))
+                .flatMap(director ->
+                    redisTemplate
+                    .opsForValue()
+                    .set("director:" + director.getId(),director, Duration.ofHours(24))
+                    .thenReturn(director)))
+            .log("Find a Director with a id: " + id);
     }
 
     @Override
@@ -65,29 +66,35 @@ public class DirectorServiceImpl implements DirectorService {
     @Override
     public Mono<Director> update(Long id, DirectorDTO directorDTO) {
         return directorRepository.findById(id)
-                .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
-                .flatMap(existingDirector ->{
-                    existingDirector.setFirstName(directorDTO.getFirstName());
-                    existingDirector.setLastName(directorDTO.getLastName());
-                    existingDirector.setBirthDate(directorDTO.getBirthDate());
-                    existingDirector.setNationality(Enum.valueOf(Nationality.class,directorDTO.getNationality()));
+            .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
+            .flatMap(existingDirector ->{
+                existingDirector.setFirstName(directorDTO.getFirstName());
+                existingDirector.setLastName(directorDTO.getLastName());
+                existingDirector.setBirthDate(directorDTO.getBirthDate());
+                existingDirector.setNationality(Enum.valueOf(Nationality.class,directorDTO.getNationality()));
 
-                    return directorRepository.save(existingDirector);
-                })
-                .log("Update a director with a id: " + id);
+                return directorRepository.save(existingDirector);
+            })
+            .log("Update a director with a id: " + id);
     }
 
     @Override
     public Mono<Void> delete(Long id) {
         return directorRepository.findById(id)
-                .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
-                .flatMap(directorRepository::delete)
-                .log("Delete a director with a id: " + id);
+            .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
+            .flatMap(directorRepository::delete)
+            .log("Delete a director with a id: " + id);
     }
 
     @Override
     public Mono<DirectorMoviePK> saveDirectorMovie(Long directorId, Long movieId) {
         return directorMovieRepository.save(new DirectorMoviePK(directorId,movieId))
-                .log("Save director to movie");
+            .log("Save director to movie");
+    }
+
+    @Override
+    public Flux<Director> findDirectorByMovieId(Long movieId) {
+        return directorMovieRepository.findDirectorByMovieId(movieId)
+                .log("Find director by movie id: " + movieId);
     }
 }
