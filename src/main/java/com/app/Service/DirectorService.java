@@ -13,4 +13,6 @@ public interface DirectorService {
     Mono<Director> update(Long id,DirectorDTO directorDTO);
     Mono<Void> delete(Long id);
     Mono<DirectorMoviePK> saveDirectorMovie(Long directorId, Long movieId);
+    Flux<Director> findDirectorByMovieId(Long movieId);
+
 }
