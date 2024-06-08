@@ -8,7 +8,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
 
 @Component
 public class MovieConsumer {
@@ -25,7 +24,7 @@ public class MovieConsumer {
     public void receiveMovie(Movie movie){
         try{
             log.info("Successfully receive [{}] from movie-queue",movie);
-            processor.processMovie(movie);
+            processor.process(movie);
         }catch (Exception e){
             log.error("Failed receive [{}] from movie-queue",movie,e);
         }
