@@ -19,13 +19,12 @@ import reactor.core.publisher.Mono;
 public class DirectorHandler {
 
     private final DirectorService directorService;
-    private final Processor<Movie> processor;
 
     @Autowired
-    public DirectorHandler(DirectorService directorService,@Qualifier("MovieProcessor") Processor<Movie> processor) {
+    public DirectorHandler(DirectorService directorService) {
         this.directorService = directorService;
-        this.processor = processor;
     }
+
 
     public Mono<ServerResponse> findAll(ServerRequest request){
         Flux<Director> directors = directorService.findAll();
@@ -62,10 +61,9 @@ public class DirectorHandler {
 
     public Mono<ServerResponse> saveDirectorMovie(ServerRequest request){
         return request.bodyToMono(DirectorMovieDTO.class)
-                .flatMap(directorMovieDTO -> processor.getMovie()
-                        .flatMap(movie -> directorService.saveDirectorMovie(directorMovieDTO.getDirectorId(),movie.getId()))
+                .flatMap(directorService::saveDirectorMovie)
                         .flatMap(savedDirectorMovie -> ServerResponse.ok().bodyValue(savedDirectorMovie))
                         .switchIfEmpty(ServerResponse.notFound().build())
-                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage())));
+                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage()));
     }
 }
