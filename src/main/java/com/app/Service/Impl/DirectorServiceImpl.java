@@ -1,14 +1,18 @@
 package com.app.Service.Impl;
 
 import com.app.DTO.DirectorDTO;
+import com.app.DTO.DirectorMovieDTO;
 import com.app.Entity.Director;
 import com.app.Entity.DirectorMoviePK;
+import com.app.Entity.Movie;
 import com.app.Entity.Nationality;
 import com.app.Expection.DirectorNotFound;
 import com.app.Mapper.DirectorMapper;
 import com.app.Repository.DirectorMovieRepository;
 import com.app.Repository.DirectorRepository;
 import com.app.Service.DirectorService;
+import com.app.messaging.processor.Processor;
+import com.app.messaging.producer.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -22,12 +26,16 @@ public class DirectorServiceImpl implements DirectorService {
 
     private final DirectorRepository directorRepository;
     private final DirectorMovieRepository directorMovieRepository;
+    private final Producer<Director> directorProducer;
+    private final Processor<Movie> movieProcessor;
     private final ReactiveRedisTemplate<String,Director> redisTemplate;
 
     @Autowired
-    public DirectorServiceImpl(DirectorRepository directorRepository, DirectorMovieRepository directorMovieRepository, ReactiveRedisTemplate<String, Director> redisTemplate) {
+    public DirectorServiceImpl(DirectorRepository directorRepository, DirectorMovieRepository directorMovieRepository, Producer<Director> directorProducer, Processor<Movie> movieProcessor, ReactiveRedisTemplate<String, Director> redisTemplate) {
         this.directorRepository = directorRepository;
         this.directorMovieRepository = directorMovieRepository;
+        this.directorProducer = directorProducer;
+        this.movieProcessor = movieProcessor;
         this.redisTemplate = redisTemplate;
     }
 
@@ -87,14 +95,18 @@ public class DirectorServiceImpl implements DirectorService {
     }
 
     @Override
-    public Mono<DirectorMoviePK> saveDirectorMovie(Long directorId, Long movieId) {
-        return directorMovieRepository.save(new DirectorMoviePK(directorId,movieId))
-            .log("Save director to movie");
+    public Mono<DirectorMoviePK> saveDirectorMovie(DirectorMovieDTO directorMovieDTO) {
+        return movieProcessor.getOneData()
+            .flatMap(movie ->
+                directorMovieRepository.save(new DirectorMoviePK(directorMovieDTO.getDirectorId(),movie.getId()))
+                .onErrorResume(error -> Mono.error(new RuntimeException("Failed to save director movie", error)))
+            );
     }
 
     @Override
     public Flux<Director> findDirectorByMovieId(Long movieId) {
         return directorMovieRepository.findDirectorByMovieId(movieId)
-                .log("Find director by movie id: " + movieId);
+            .doOnNext(directorProducer::send)
+            .log("Find director by movie id: " + movieId);
     }
 }

@@ -1,14 +1,18 @@
 package com.app.Service.Impl;
 
 import com.app.DTO.ActorDTO;
+import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
 import com.app.Entity.ActorMoviePK;
+import com.app.Entity.Movie;
 import com.app.Entity.Nationality;
 import com.app.Expection.ActorNotFound;
 import com.app.Mapper.ActorMapper;
 import com.app.Repository.ActorMovieRepository;
 import com.app.Repository.ActorRepository;
 import com.app.Service.ActorService;
+import com.app.messaging.processor.Processor;
+import com.app.messaging.producer.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -21,14 +25,19 @@ import java.time.Duration;
 public class ActorServiceImpl implements ActorService {
     private final ActorRepository actorRepository;
     private final ActorMovieRepository actorMovieRepository;
+    private final Producer<Actor> actorProducer;
+    private final Processor<Movie> movieProcessor;
     private final ReactiveRedisTemplate<String,Actor> redisTemplate;
 
     @Autowired
-    public ActorServiceImpl(ActorRepository actorRepository, ActorMovieRepository actorMovieRepository, ReactiveRedisTemplate<String, Actor> redisTemplate) {
+    public ActorServiceImpl(ActorRepository actorRepository, ActorMovieRepository actorMovieRepository, Producer<Actor> actorProducer, Processor<Movie> movieProcessor, ReactiveRedisTemplate<String, Actor> redisTemplate) {
         this.actorRepository = actorRepository;
         this.actorMovieRepository = actorMovieRepository;
+        this.actorProducer = actorProducer;
+        this.movieProcessor = movieProcessor;
         this.redisTemplate = redisTemplate;
     }
+
 
     @Override
     public Flux<Actor> findAll() {
@@ -86,13 +95,17 @@ public class ActorServiceImpl implements ActorService {
     }
 
     @Override
-    public Mono<ActorMoviePK> saveActorMovie(Long actorId, Long movieId) {
-        return actorMovieRepository.save(new ActorMoviePK(actorId,movieId))
-            .log("Save a actor and movie");
+    public Mono<ActorMoviePK> saveActorMovie(ActorMovieDTO actorMovieDTO) {
+        return movieProcessor.getOneData()
+            .flatMap(movie ->
+                actorMovieRepository.save(new ActorMoviePK(actorMovieDTO.getActorId(),movie.getId()))
+                .onErrorResume(error -> Mono.error(new RuntimeException("Failed to save actor movie", error)))
+            );
     }
 
     @Override
     public Flux<Actor> findActorByMovieId(Long movieId) {
-        return actorMovieRepository.findActorByMovieId(movieId);
+        return actorMovieRepository.findActorByMovieId(movieId)
+                .doOnNext(actorProducer::send);
     }
 }
