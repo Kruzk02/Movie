@@ -1,7 +1,7 @@
 package com.app.Service;
 
 import com.app.DTO.ActorDTO;
-import com.app.DTO.DirectorDTO;
+import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
 import com.app.Entity.ActorMoviePK;
 import reactor.core.publisher.Flux;
@@ -13,6 +13,6 @@ public interface ActorService {
     Mono<Actor> save(ActorDTO actorDTO);
     Mono<Actor> update(Long id,ActorDTO actorDTO);
     Mono<Void> delete(Long id);
-    Mono<ActorMoviePK> saveActorMovie(Long actorId, Long movieId);
+    Mono<ActorMoviePK> saveActorMovie(ActorMovieDTO actorMovieDTO);
     Flux<Actor> findActorByMovieId(Long movieId);
 }
