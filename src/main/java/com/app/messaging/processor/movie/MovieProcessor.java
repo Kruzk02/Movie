@@ -6,6 +6,7 @@ import com.app.messaging.processor.Processor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -28,7 +29,7 @@ public class MovieProcessor implements Processor<Movie> {
     }
 
     @Override
-    public void processMovie(Movie movie) {
+    public void process(Movie movie) {
         log.info("Process movie: {}", movie.getId());
         map.put(movie.getId(),movie);
 
@@ -39,7 +40,7 @@ public class MovieProcessor implements Processor<Movie> {
     }
 
     @Override
-    public Mono<Movie> getMovie() {
+    public Mono<Movie> getOneData() {
         return Mono.defer(() -> {
             if (!map.isEmpty()) {
                 Map.Entry<Long,Movie> entry = map.entrySet().iterator().next();
@@ -47,6 +48,19 @@ public class MovieProcessor implements Processor<Movie> {
                 return Mono.just(entry.getValue());
             } else {
                 return Mono.error(new NoMovieAvailableException("No movie available"));
+            }
+        }).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @Override
+    public Flux<Movie> getMultipleData() {
+        return Flux.defer(() -> {
+            if (!map.isEmpty()) {
+                Map.Entry<Long,Movie> entry = map.entrySet().iterator().next();
+                log.info("Retrieved multiple movie: {}", entry.getKey());
+                return Flux.just(entry.getValue());
+            } else {
+                return Flux.error(new NoMovieAvailableException("No movie available"));
             }
         }).subscribeOn(Schedulers.boundedElastic());
     }
