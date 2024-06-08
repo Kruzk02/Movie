@@ -7,6 +7,6 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 
 public interface DirectorMovieRepository extends ReactiveCrudRepository<DirectorMoviePK,Long> {
-    @Query("SELECT * FROM director_movie dm JOIN director d ON dm.director_id = d.id WHERE dm.movie_id = :movie_id")
-    Flux<Director> findAllByMovieId(Long movieId);
+    @Query("SELECT d.* FROM director d JOIN director_movie dm ON d.id = dm.director_id JOIN movie m ON dm.movie_id = m.id WHERE m.id = :movieId")
+    Flux<Director> findDirectorByMovieId(Long movieId);
 }
