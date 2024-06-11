@@ -3,6 +3,7 @@ package com.app.Handler;
 import com.app.DTO.RatingDTO;
 import com.app.Entity.Movie;
 import com.app.Entity.Rating;
+import com.app.Service.RatingMovieService;
 import com.app.Service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,10 +15,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class RatingHandler {
 
+    private final RatingMovieService ratingMovieService;
     private final RatingService ratingService;
 
     @Autowired
-    public RatingHandler(RatingService ratingService) {
+    public RatingHandler(RatingMovieService ratingMovieService, RatingService ratingService) {
+        this.ratingMovieService = ratingMovieService;
         this.ratingService = ratingService;
     }
 
@@ -35,13 +38,13 @@ public class RatingHandler {
 
     public Mono<ServerResponse> saveMovieRating(ServerRequest request){
         Mono<RatingDTO> ratingDTOMono = request.bodyToMono(RatingDTO.class);
-        return ratingDTOMono.flatMap(ratingDTO -> ratingService.save(ratingDTO)
+        return ratingDTOMono.flatMap(ratingDTO -> ratingMovieService.save(ratingDTO)
                 .flatMap(savedRating -> ServerResponse.ok().bodyValue(savedRating)));
     }
 
     public Mono<ServerResponse> getAverageRating(ServerRequest request){
         Long movieId = Long.valueOf(request.pathVariable("movieId"));
-        Mono<Double> ratingMono = ratingService.getAverageRating(movieId);
+        Mono<Double> ratingMono = ratingMovieService.getAverageRating(movieId);
         return ratingMono.flatMap(rating -> ServerResponse.ok().bodyValue(rating)
                 .switchIfEmpty(ServerResponse.notFound().build()));
     }
