@@ -14,4 +14,7 @@ public interface GenreMovieRepository extends ReactiveCrudRepository<GenreMovieP
 
     @Query("SELECT g.* FROM genre g JOIN genre_movie gm ON g.id = gm.genre_id JOIN movie m ON gm.movie_id = m.id WHERE m.id = :movieId")
     Flux<Genre> findByMovieId(Long movieId);
+
+    @Query("SELECT m.* FROM movie m JOIN genre_movie gm ON m.id = gm.movie_id JOIN genre g ON gm.genre_id = g.id WHERE g.id = :id")
+    Flux<Movie> findMovieByGenreId(Long id);
 }
