@@ -4,11 +4,13 @@ import com.app.DTO.DirectorDTO;
 import com.app.DTO.DirectorMovieDTO;
 import com.app.Entity.Director;
 import com.app.Entity.Movie;
+import com.app.Service.DirectorMovieService;
 import com.app.Service.DirectorService;
 import com.app.messaging.processor.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -18,10 +20,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class DirectorHandler {
 
+    private final DirectorMovieService directorMovieService;
     private final DirectorService directorService;
 
     @Autowired
-    public DirectorHandler(DirectorService directorService) {
+    public DirectorHandler(DirectorMovieService directorMovieService, DirectorService directorService) {
+        this.directorMovieService = directorMovieService;
         this.directorService = directorService;
     }
 
@@ -61,9 +65,19 @@ public class DirectorHandler {
 
     public Mono<ServerResponse> saveDirectorMovie(ServerRequest request){
         return request.bodyToMono(DirectorMovieDTO.class)
-                .flatMap(directorService::saveDirectorMovie)
+                .flatMap(directorMovieService::saveDirectorMovie)
                         .flatMap(savedDirectorMovie -> ServerResponse.ok().bodyValue(savedDirectorMovie))
                         .switchIfEmpty(ServerResponse.notFound().build())
                         .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage()));
+    }
+
+    public Mono<ServerResponse> findMovieByDirectorId(ServerRequest request){
+        Long id = Long.valueOf(request.pathVariable("id"));
+        Flux<Movie> movieFlux = directorMovieService.findMovieByDirector(id);
+        return movieFlux.collectList()
+            .flatMap(movies -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(movies))
+            .switchIfEmpty(ServerResponse.notFound().build());
     }
 }

@@ -3,9 +3,12 @@ package com.app.Handler;
 import com.app.DTO.ActorDTO;
 import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
+import com.app.Entity.Movie;
+import com.app.Service.ActorMovieService;
 import com.app.Service.ActorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -15,10 +18,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class ActorHandler {
 
+    private final ActorMovieService actorMovieService;
     private final ActorService actorService;
 
     @Autowired
-    public ActorHandler(ActorService actorService) {
+    public ActorHandler(ActorMovieService actorMovieService, ActorService actorService) {
+        this.actorMovieService = actorMovieService;
         this.actorService = actorService;
     }
 
@@ -57,9 +62,19 @@ public class ActorHandler {
 
     public Mono<ServerResponse> saveActorMovie(ServerRequest request){
         return request.bodyToMono(ActorMovieDTO.class)
-            .flatMap(actorService::saveActorMovie)
+            .flatMap(actorMovieService::saveActorMovie)
                 .flatMap(savedActorMovie -> ServerResponse.ok().bodyValue(savedActorMovie))
                 .switchIfEmpty(ServerResponse.notFound().build())
                 .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving actor: " + error.getMessage()));
+    }
+
+    public Mono<ServerResponse> findMovieByActorId(ServerRequest request) {
+        Long id = Long.valueOf(request.pathVariable("id"));
+        Flux<Movie> movieFlux = actorMovieService.findMovieByActor(id);
+        return movieFlux.collectList()
+                .flatMap(movies -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(movies))
+                .switchIfEmpty(ServerResponse.notFound().build());
     }
 }
