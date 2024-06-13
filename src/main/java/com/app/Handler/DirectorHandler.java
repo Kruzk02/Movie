@@ -65,10 +65,11 @@ public class DirectorHandler {
 
     public Mono<ServerResponse> saveDirectorMovie(ServerRequest request){
         return request.bodyToMono(DirectorMovieDTO.class)
-                .flatMap(directorMovieService::saveDirectorMovie)
-                        .flatMap(savedDirectorMovie -> ServerResponse.ok().bodyValue(savedDirectorMovie))
-                        .switchIfEmpty(ServerResponse.notFound().build())
-                        .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage()));
+            .flatMap(directorMovieService::saveDirectorMovie)
+                .flatMap(savedDirectorMovie -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(savedDirectorMovie))
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage()));
     }
 
     public Mono<ServerResponse> findMovieByDirectorId(ServerRequest request){

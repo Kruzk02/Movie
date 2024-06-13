@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 public class DirectorMovieServiceImpl implements DirectorMovieService {
 
@@ -25,12 +28,21 @@ public class DirectorMovieServiceImpl implements DirectorMovieService {
     }
 
     @Override
-    public Mono<DirectorMoviePK> saveDirectorMovie(DirectorMovieDTO directorMovieDTO) {
+    public Mono<Void> saveDirectorMovie(DirectorMovieDTO directorMovieDTO) {
         return movieProcessor.getOneData()
-                .flatMap(movie ->
-                        directorMovieRepository.save(new DirectorMoviePK(directorMovieDTO.getDirectorId(),movie.getId()))
-                                .onErrorResume(error -> Mono.error(new RuntimeException("Failed to save director movie", error)))
-                );
+            .flatMapMany(movie -> {
+                Set<DirectorMoviePK> directorMovies = directorMovieDTO.getDirectorId().stream()
+                    .map(directorId -> new DirectorMoviePK(directorId,movie.getId()))
+                    .collect(Collectors.toSet());
+                return directorMovieRepository.saveAll(directorMovies);
+            })
+            .then()
+            .log("Save director and movie");
+    }
+
+    @Override
+    public Mono<DirectorMoviePK> updateDirectorMovie(DirectorMovieDTO directorMovieDTO) {
+        return null;
     }
 
     @Override

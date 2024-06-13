@@ -1,10 +1,12 @@
 package com.app.DTO;
 
+import java.util.Set;
+
 public class DirectorMovieDTO {
 
-    private Long directorId;
+    private Set<Long> directorId;
 
-    public Long getDirectorId() {
+    public Set<Long> getDirectorId() {
         return directorId;
     }
 }
