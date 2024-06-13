@@ -75,11 +75,10 @@ public class GenreHandler {
      */
     public Mono<ServerResponse> save(ServerRequest request){
         return request.bodyToMono(GenreDTO.class)
-            .flatMap(genreMovieService::save)
+            .flatMap(genreMovieService::saveGenreMovie)
             .flatMap(savedGenreMovie -> ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(savedGenreMovie))
-            .switchIfEmpty(ServerResponse.notFound().build())
             .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .bodyValue("Error saving genre: " + error.getMessage()));
     }
