@@ -8,7 +8,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface DirectorMovieService {
-    Mono<DirectorMoviePK> saveDirectorMovie(DirectorMovieDTO directorMovieDTO);
+    Mono<Void> saveDirectorMovie(DirectorMovieDTO directorMovieDTO);
+    Mono<DirectorMoviePK> updateDirectorMovie(DirectorMovieDTO directorMovieDTO);
     Flux<Director> findDirectorByMovieId(Long movieId);
     Flux<Movie> findMovieByDirector(Long id);
 }
