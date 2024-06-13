@@ -63,8 +63,9 @@ public class ActorHandler {
     public Mono<ServerResponse> saveActorMovie(ServerRequest request){
         return request.bodyToMono(ActorMovieDTO.class)
             .flatMap(actorMovieService::saveActorMovie)
-                .flatMap(savedActorMovie -> ServerResponse.ok().bodyValue(savedActorMovie))
-                .switchIfEmpty(ServerResponse.notFound().build())
+                .flatMap(savedActorMovie -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(savedActorMovie))
                 .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving actor: " + error.getMessage()));
     }
 

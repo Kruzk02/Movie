@@ -1,10 +1,12 @@
 package com.app.DTO;
 
+import java.util.Set;
+
 public class ActorMovieDTO {
 
-    private Long actorId;
+    private Set<Long> actorId;
 
-    public Long getActorId() {
+    public Set<Long> getActorId() {
         return actorId;
     }
 }
