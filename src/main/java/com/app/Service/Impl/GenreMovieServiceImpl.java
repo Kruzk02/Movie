@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 public class GenreMovieServiceImpl implements GenreMovieService {
 
@@ -44,12 +47,21 @@ public class GenreMovieServiceImpl implements GenreMovieService {
      * @return A Mono emitting the saved genre movie.
      */
     @Override
-    public Mono<GenreMoviePK> save(GenreDTO genreDTO) {
+    public Mono<Void> saveGenreMovie(GenreDTO genreDTO) {
         return movieProcessor.getOneData()
-                .flatMap(movie ->
-                        genreMovieRepository.save(new GenreMoviePK(genreDTO.getGenreId(),movie.getId()))
-                                .onErrorResume(error -> Mono.error(new RuntimeException("Failed to save genre movie", error)))
-                );
+            .flatMapMany(movie -> {
+                Set<GenreMoviePK> genreMovies = genreDTO.getGenreId().stream()
+                    .map(genreId -> new GenreMoviePK(genreId,movie.getId()))
+                    .collect(Collectors.toSet());
+                return genreMovieRepository.saveAll(genreMovies);
+            })
+            .then()
+            .log("Save genre and movie");
+    }
+
+    @Override
+    public Mono<GenreMoviePK> updateGenreMovie(GenreDTO genreDTO) {
+        return null;
     }
 
     /**

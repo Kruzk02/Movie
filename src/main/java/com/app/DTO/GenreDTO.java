@@ -1,11 +1,12 @@
 package com.app.DTO;
 
+import java.util.Set;
+
 public class GenreDTO {
 
-    private Long genreId;
+    private Set<Long> genreId;
 
-    public Long getGenreId() {
+    public Set<Long> getGenreId() {
         return genreId;
     }
-
 }
