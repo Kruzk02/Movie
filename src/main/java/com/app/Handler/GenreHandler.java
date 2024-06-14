@@ -73,7 +73,7 @@ public class GenreHandler {
      * @param request The server request containing the GenreDTO in the request body.
      * @return A Mono emitting the ServerResponse containing the saved genre movie or an error message in case of failure.
      */
-    public Mono<ServerResponse> save(ServerRequest request){
+    public Mono<ServerResponse> saveGenreMovie(ServerRequest request){
         return request.bodyToMono(GenreDTO.class)
             .flatMap(genreMovieService::saveGenreMovie)
             .flatMap(savedGenreMovie -> ServerResponse.ok()
@@ -81,5 +81,15 @@ public class GenreHandler {
                 .bodyValue(savedGenreMovie))
             .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .bodyValue("Error saving genre: " + error.getMessage()));
+    }
+
+    public Mono<ServerResponse> updateGenreMovie(ServerRequest request){
+        return request.bodyToMono(GenreDTO.class)
+                .flatMap(genreMovieService::updateGenreMovie)
+                .flatMap(savedGenreMovie -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(savedGenreMovie))
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .bodyValue("Error update genre: " + error.getMessage()));
     }
 }
