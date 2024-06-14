@@ -3,6 +3,7 @@ package com.app.Handler;
 import com.app.DTO.ActorDTO;
 import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
+import com.app.Entity.ActorMoviePK;
 import com.app.Entity.Movie;
 import com.app.Service.ActorMovieService;
 import com.app.Service.ActorService;
@@ -77,5 +78,14 @@ public class ActorHandler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(movies))
                 .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    public Mono<ServerResponse> updateActorMovie(ServerRequest request){
+        return request.bodyToMono(ActorMovieDTO.class)
+            .flatMap(actorMovieService::updateActorMovie)
+                .flatMap(savedActorMovie -> ServerResponse.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(savedActorMovie))
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + error.getMessage()));
     }
 }

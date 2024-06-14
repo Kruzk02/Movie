@@ -41,8 +41,18 @@ public class ActorMovieServiceImpl implements ActorMovieService {
     }
 
     @Override
-    public Mono<ActorMoviePK> updateActorMovie(ActorMovieDTO actorMovieDTO) {
-        return null;
+    public Mono<Void> updateActorMovie(ActorMovieDTO actorMovieDTO) {
+        return movieProcessor.getOneData()
+            .flatMapMany(movie -> {
+                Mono<Void> deleteExisting = actorMovieRepository.deleteByMovieId(movie.getId());
+
+                Flux<ActorMoviePK> newActorMovie = Flux.fromIterable(actorMovieDTO.getActorId())
+                        .map(actorId -> new ActorMoviePK(actorId,movie.getId()));
+
+                return deleteExisting.thenMany(newActorMovie)
+                        .collectList()
+                        .flatMapMany(actorMovieRepository::saveAll);
+            }).then();
     }
 
     @Override
