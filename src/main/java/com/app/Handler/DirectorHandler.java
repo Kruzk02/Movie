@@ -3,6 +3,7 @@ package com.app.Handler;
 import com.app.DTO.DirectorDTO;
 import com.app.DTO.DirectorMovieDTO;
 import com.app.Entity.Director;
+import com.app.Entity.DirectorMoviePK;
 import com.app.Entity.Movie;
 import com.app.Service.DirectorMovieService;
 import com.app.Service.DirectorService;
@@ -70,6 +71,15 @@ public class DirectorHandler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedDirectorMovie))
                 .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage()));
+    }
+
+    public Mono<ServerResponse> updateDirectorMovie(ServerRequest request){
+        return request.bodyToMono(DirectorMovieDTO.class)
+                .flatMap(directorMovieService::updateDirectorMovie)
+                    .flatMap(savedDirectorMovie -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(savedDirectorMovie))
+                    .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update director: " + error.getMessage()));
     }
 
     public Mono<ServerResponse> findMovieByDirectorId(ServerRequest request){
