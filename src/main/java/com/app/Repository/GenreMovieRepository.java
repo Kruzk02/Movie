@@ -17,4 +17,7 @@ public interface GenreMovieRepository extends ReactiveCrudRepository<GenreMovieP
 
     @Query("SELECT m.* FROM movie m JOIN genre_movie gm ON m.id = gm.movie_id JOIN genre g ON gm.genre_id = g.id WHERE g.id = :id")
     Flux<Movie> findMovieByGenreId(Long id);
+
+    @Query("DELETE FROM genre_movie WHERE movie_id = :movieId")
+    Mono<Void> deleteByMovieId(Long movieId);
 }

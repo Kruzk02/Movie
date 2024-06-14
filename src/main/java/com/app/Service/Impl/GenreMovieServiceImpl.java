@@ -60,8 +60,18 @@ public class GenreMovieServiceImpl implements GenreMovieService {
     }
 
     @Override
-    public Mono<GenreMoviePK> updateGenreMovie(GenreDTO genreDTO) {
-        return null;
+    public Mono<Void> updateGenreMovie(GenreDTO genreDTO) {
+        return movieProcessor.getOneData()
+            .flatMapMany(movie -> {
+                Mono<Void> deleteExisting = genreMovieRepository.deleteByMovieId(movie.getId());
+
+                Flux<GenreMoviePK> newGenreMovie = Flux.fromIterable(genreDTO.getGenreId())
+                        .map(genreId -> new GenreMoviePK(genreId,movie.getId()));
+
+                return deleteExisting.thenMany(newGenreMovie)
+                        .collectList()
+                        .flatMapMany(genreMovieRepository::saveAll);
+            }).then();
     }
 
     /**
