@@ -77,6 +77,7 @@ public class MovieServiceImpl implements MovieService {
                 existingMovie.setReleaseYear(movieDTO.getRelease_year());
                 existingMovie.setMovieLength(movieDTO.getMovie_length());
 
+                movieProducer.send(existingMovie);
                 return movieRepository.save(existingMovie);
             })
         .log("Update a Movie with id: " + id);
