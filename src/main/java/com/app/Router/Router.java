@@ -28,27 +28,47 @@ public class Router {
         this.genreHandler = genreHandler;
     }
 
+    /**
+     * Configures the router functions for director-related endpoints.
+     *
+     * @return A RouterFunction that routes request to the appropriate handler methods.
+     */
     @Bean
     public RouterFunction<ServerResponse> directorRouter(){
         return RouterFunctions
                 .route(GET("/directors"),directorHandler::findAll)
                 .andRoute(GET("/directors/{id}"),directorHandler::findById)
+                .andRoute(GET("/directors/{id}/movies"),directorHandler::findMovieByDirectorId)
+                .andRoute(POST("/directors/movies"),directorHandler::saveDirectorMovie)
+                .andRoute(PUT("directors/movies"), directorHandler::updateDirectorMovie)
                 .andRoute(POST("/directors"),directorHandler::create)
                 .andRoute(PUT("/directors/{id}"),directorHandler::update)
                 .andRoute(DELETE("/directors/{id}"),directorHandler::delete);
     }
 
+    /**
+     * Configures the router functions for actor-related endpoints.
+     *
+     * @return A RouterFunction that routes request to the appropriate handler methods.
+     */
     @Bean
     public RouterFunction<ServerResponse> actorRouter(){
         return RouterFunctions
                 .route(GET("/actors"),actorHandler::findAll)
                 .andRoute(GET("/actors/{id}"),actorHandler::findById)
+                .andRoute(POST("/actors/movies"),actorHandler::saveActorMovie)
+                .andRoute(PUT("/actors/movies"),actorHandler::updateActorMovie)
+                .andRoute(GET("/actors/{id}/movies"),actorHandler::findMovieByActorId)
                 .andRoute(POST("/actors"),actorHandler::save)
                 .andRoute(PUT("/actors/{id}"),actorHandler::update)
-                .andRoute(DELETE("/actors/{id}"),actorHandler::delete)
-                .andRoute(POST("/actors/movies"),actorHandler::saveActorMovie);
+                .andRoute(DELETE("/actors/{id}"),actorHandler::delete);
     }
 
+    /**
+     * Configures the router functions for movie-related endpoints.
+     *
+     * @return A RouterFunction that routes request to the appropriate handler methods.
+     */
     @Bean
     public RouterFunction<ServerResponse> movieRouter(){
         return RouterFunctions
@@ -59,6 +79,11 @@ public class Router {
                 .andRoute(DELETE("/movies/{id}"),movieHandler::delete);
     }
 
+    /**
+     * Configures the router functions for rating-related endpoints.
+     *
+     * @return A RouterFunction that routes request to the appropriate handler methods.
+     */
     @Bean
     public RouterFunction<ServerResponse> ratingRouter(){
         return RouterFunctions
@@ -67,11 +92,18 @@ public class Router {
                 .andRoute(POST("/ratings"),ratingHandler::saveMovieRating);
     }
 
+    /**
+     * Configures the router functions for genre-related endpoints.
+     *
+     * @return A RouterFunction that routes requests to the appropriate handler methods.
+     */
     @Bean
     public RouterFunction<ServerResponse> genreRouter(){
         return RouterFunctions
                 .route(GET("/genres"),genreHandler::findAll)
                 .andRoute(GET("/genres/{id}"),genreHandler::findById)
-                .andRoute(POST("/genres/movies"),genreHandler::save);
+                .andRoute(GET("/genres/{id}/movies"),genreHandler::findMovieByGenreId)
+                .andRoute(POST("/genres/movies"),genreHandler::saveGenreMovie)
+                .andRoute(PUT("/genres/movies"),genreHandler::updateGenreMovie);
     }
 }
