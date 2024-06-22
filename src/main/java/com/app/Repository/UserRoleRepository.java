@@ -10,7 +10,7 @@ public interface UserRoleRepository extends ReactiveCrudRepository<UserRolePK,Lo
 
     @Query("SELECT r.* FROM user_role ur " +
             "JOIN role r ON ur.role_id = r.id " +
-            "JOIN user u ON ur.user_id = u.id " +
+            "JOIN users u ON ur.user_id = u.id " +
             "WHERE u.username = :username")
     Flux<Role> findRolesByUsername(String username);
 }
