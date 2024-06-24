@@ -42,4 +42,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(ex.getMessage());
         return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(PhoneNumberValidationException.class)
+    public ResponseEntity<ErrorResponse> handlePhoneNumberValidationException(PhoneNumberValidationException ex){
+        ErrorResponse response = new ErrorResponse(ex.getMessage());
+        log.error(ex.getMessage());
+        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EmailValidationException.class)
+    public ResponseEntity<ErrorResponse> handleEmailValidationException(EmailValidationException ex){
+        ErrorResponse response = new ErrorResponse(ex.getMessage());
+        log.error(ex.getMessage());
+        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PasswordValidationException.class)
+    public ResponseEntity<ErrorResponse> handlePasswordValidationException(PasswordValidationException ex){
+        ErrorResponse response = new ErrorResponse(ex.getMessage());
+        log.error(ex.getMessage());
+        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+    }
 }
