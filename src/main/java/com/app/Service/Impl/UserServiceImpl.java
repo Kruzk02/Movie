@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,44 +76,48 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<Void> login(UserDTO userDTO) {
         return reactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                userDTO.getUsername(), userDTO.getPassword()
-        ))
-        .doOnSuccess(ReactiveSecurityContextHolder::withAuthentication)
-        .onErrorResume(Exception.class, ex -> Mono.error(new Exception("Authentication failed", ex)))
-        .then()
-        .log("Login with a username: " + userDTO.getUsername());
+                        userDTO.getUsername(), userDTO.getPassword()
+                ))
+                .doOnSuccess(ReactiveSecurityContextHolder::withAuthentication)
+                .onErrorResume(Exception.class, ex -> Mono.error(new Exception("Authentication failed", ex)))
+                .then()
+                .log("Login with a username: " + userDTO.getUsername());
     }
 
     @Override
     public Mono<User> register(UserDTO userDTO) {
-        User user = UserMapper.INSTANCE.mapDTOToEntity(userDTO);
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        return checkUsernameExist(userDTO.getUsername())
+                .then(checkEmailExist(userDTO.getEmail()))
+                .then(Mono.defer(() -> {
+                    User user = UserMapper.INSTANCE.mapDTOToEntity(userDTO);
+                    user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
-        if (!validateEmail(user.getEmail())){
-            throw new EmailValidationException("Invalid email address format: " + user.getEmail());
-        }
+                    if (!validateEmail(user.getEmail())){
+                        throw new EmailValidationException("Invalid email address format: " + user.getEmail());
+                    }
 
-        if (!validatePassword(user.getPassword())){
-            throw new PasswordValidationException();
-        }
+                    if (!validatePassword(user.getPassword())){
+                        throw new PasswordValidationException();
+                    }
 
-        if (!validatePhoneNumber(user.getPhoneNumber())){
-            throw new PhoneNumberValidationException("Invalid phone number format: " + user.getPhoneNumber());
-        }
+                    if (!validatePhoneNumber(user.getPhoneNumber())){
+                        throw new PhoneNumberValidationException("Invalid phone number format: " + user.getPhoneNumber());
+                    }
 
-        return userRepository.save(user)
-                .flatMap(savedUser -> roleRepository.findByName("ROLE_USER")
-                        .flatMap(roleUser -> userRoleRepository.save(new UserRolePK(savedUser.getId(),roleUser.getId())))
-                        .thenReturn(savedUser))
-                .log("Register with a email: " + user.getEmail());
+                    return userRepository.save(user)
+                            .flatMap(savedUser -> roleRepository.findByName("ROLE_USER")
+                                    .flatMap(roleUser -> userRoleRepository.save(new UserRolePK(savedUser.getId(),roleUser.getId())))
+                                    .thenReturn(savedUser))
+                            .log("Register with a email: " + user.getEmail());
+                }));
     }
 
     @Override
     public Mono<Void> delete(Long id) {
         return userRepository.findById(id)
-            .switchIfEmpty(Mono.error(new UserNotFound("User not found with a id: " + id)))
-            .flatMap(userRepository::delete)
-            .log("Delete user with a id: " + id);
+                .switchIfEmpty(Mono.error(new UserNotFound("User not found with a id: " + id)))
+                .flatMap(userRepository::delete)
+                .log("Delete user with a id: " + id);
     }
 
     //thienphuc123456@gmail.com
@@ -135,5 +140,17 @@ public class UserServiceImpl implements UserService {
         Pattern pattern = Pattern.compile("^(\\+\\d{1,3}( )?)?((\\(\\d{1,3}\\))|\\d{1,3})[- .]?\\d{3,4}[- .]?\\d{4}$");
         Matcher matcher = pattern.matcher(phoneNumber);
         return matcher.matches();
+    }
+
+    private Mono<Void> checkUsernameExist(String username){
+        return userRepository.findByUsername(username)
+                .flatMap(ExistingUser -> Mono.error(new UsernameAlreadyExistsException("Username already exists: " + username)))
+                .switchIfEmpty(Mono.empty()).then();
+    }
+
+    private Mono<Void> checkEmailExist(String email){
+        return userRepository.findByEmail(email)
+                .flatMap(existingUser -> Mono.error(new EmailAlreadyExistingException("Email already exist: " + email)))
+                .switchIfEmpty(Mono.empty()).then();
     }
 }
