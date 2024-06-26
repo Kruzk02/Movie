@@ -1,6 +1,9 @@
 package com.app.Config;
 
 import com.app.Service.userdetailsservice.CustomUserDetailsService;
+import com.app.jwt.JwtFilter;
+import com.app.jwt.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -8,16 +11,22 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+import org.springframework.web.server.WebFilter;
 
 @EnableWebFluxSecurity
 @Configuration
 public class SecurityConfig {
+
+    @Autowired private JwtUtil jwtUtil;
 
     @Bean
     SecurityWebFilterChain filterChain(ServerHttpSecurity https,ReactiveAuthenticationManager reactiveAuthenticationManager){
@@ -29,7 +38,12 @@ public class SecurityConfig {
                     .pathMatchers("/users/login").permitAll()
                     .pathMatchers("/users/register").permitAll()
                     .anyExchange().authenticated())
+            .addFilterAt(jwtFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
             .build();
+    }
+
+    private AuthenticationWebFilter jwtFilter() {
+        return new JwtFilter(reactiveAuthenticationManager(reactiveUserDetailsService(),passwordEncoder()), jwtUtil, new CustomUserDetailsService());
     }
 
     @Bean
