@@ -21,7 +21,7 @@ public class UserHandler {
     public Mono<ServerResponse> login(ServerRequest request){
         return request.bodyToMono(UserDTO.class)
             .flatMap(userService::login)
-                .then(ServerResponse.ok().build())
+                .flatMap(token -> ServerResponse.ok().bodyValue(token))
                 .switchIfEmpty(ServerResponse.notFound().build());
     }
 
