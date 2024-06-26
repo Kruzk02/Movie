@@ -9,6 +9,7 @@ import com.app.Repository.RoleRepository;
 import com.app.Repository.UserRepository;
 import com.app.Repository.UserRoleRepository;
 import com.app.Service.UserService;
+import com.app.jwt.JwtUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +33,16 @@ public class UserServiceImpl implements UserService {
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final ReactiveAuthenticationManager reactiveAuthenticationManager;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder, ReactiveAuthenticationManager reactiveAuthenticationManager) {
+    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder, ReactiveAuthenticationManager reactiveAuthenticationManager, JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userRoleRepository = userRoleRepository;
         this.passwordEncoder = passwordEncoder;
         this.reactiveAuthenticationManager = reactiveAuthenticationManager;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -74,14 +77,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<Void> login(UserDTO userDTO) {
+    public Mono<String> login(UserDTO userDTO) {
         return reactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                         userDTO.getUsername(), userDTO.getPassword()
                 ))
-                .doOnSuccess(ReactiveSecurityContextHolder::withAuthentication)
+                .doOnNext(ReactiveSecurityContextHolder::withAuthentication)
+                .map(auth -> jwtUtil.generateToken(userDTO.getUsername()))
                 .onErrorResume(Exception.class, ex -> Mono.error(new Exception("Authentication failed", ex)))
-                .then()
-                .log("Login with a username: " + userDTO.getUsername());
+                .doOnNext(token -> System.out.println("Login with a username: " + userDTO.getUsername() + ", token: " + token));
     }
 
     @Override
