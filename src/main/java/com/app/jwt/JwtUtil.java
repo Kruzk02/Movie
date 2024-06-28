@@ -21,7 +21,7 @@ public class JwtUtil {
 
     public JwtUtil() throws NoSuchAlgorithmException {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        kpg.initialize(1024);
+        kpg.initialize(2048 );
         KeyPair kp = kpg.generateKeyPair();
         rPubKey = (RSAPublicKey) kp.getPublic();
         rPriKey = (RSAPrivateKey) kp.getPrivate();
@@ -32,11 +32,11 @@ public class JwtUtil {
                 .withSubject(username)
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000)) // Token expires in 10 minutes
-                .sign(Algorithm.RSA256(rPubKey,rPriKey));
+                .sign(Algorithm.RSA512(rPubKey,rPriKey));
     }
 
     public String validateTokenAndGetUsername(String token){
-        JWTVerifier verifier = JWT.require(Algorithm.RSA256(rPubKey,rPriKey)).build();
+        JWTVerifier verifier = JWT.require(Algorithm.RSA512(rPubKey,rPriKey)).build();
         DecodedJWT decodedJWT = verifier.verify(token);
         return decodedJWT.getSubject();
     }
