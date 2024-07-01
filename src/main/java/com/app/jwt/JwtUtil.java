@@ -3,6 +3,7 @@ package com.app.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.stereotype.Component;
 
@@ -35,9 +36,14 @@ public class JwtUtil {
                 .sign(Algorithm.RSA512(rPubKey,rPriKey));
     }
 
-    public String validateTokenAndGetUsername(String token){
-        JWTVerifier verifier = JWT.require(Algorithm.RSA512(rPubKey,rPriKey)).build();
-        DecodedJWT decodedJWT = verifier.verify(token);
+    public DecodedJWT validateToken(String token) throws JWTVerificationException {
+        JWTVerifier verifier = JWT.require(Algorithm.RSA512(rPubKey, rPriKey)).build();
+        return verifier.verify(token);
+    }
+
+    public String validateTokenAndGetUsername(String token) throws JWTVerificationException {
+        DecodedJWT decodedJWT = validateToken(token);
         return decodedJWT.getSubject();
     }
 }
+

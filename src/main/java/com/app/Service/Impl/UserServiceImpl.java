@@ -53,7 +53,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> findByUsername(String username) {
+    public Mono<User> getUserInfo(String token) {
+        String username = jwtUtil.validateTokenAndGetUsername(token);
         return userRepository.findByUsername(username)
                 .switchIfEmpty(Mono.error(new UserNotFound("User not found with a username: " + username)))
                 .log("Find user with a username: " + username);
@@ -121,6 +122,20 @@ public class UserServiceImpl implements UserService {
                 .switchIfEmpty(Mono.error(new UserNotFound("User not found with a id: " + id)))
                 .flatMap(userRepository::delete)
                 .log("Delete user with a id: " + id);
+    }
+
+    @Override
+    public Mono<Boolean> isUserHasAdminRole(String username) {
+        return userRepository.findByUsername(username)
+            .flatMap(user -> userRoleRepository.findRolesByUsername(user.getUsername())
+                .filter(role -> Objects.equals(role.getName(), "ROLE_ADMIN"))
+                    .hasElements()
+                    .flatMap(isAdmin -> {
+                        if (Boolean.FALSE.equals(isAdmin)) {
+                            return Mono.error(new IllegalAccessException("User does not have admin privileges"));
+                        }
+                        return Mono.just(true);
+                    }));
     }
 
     //thienphuc123456@gmail.com

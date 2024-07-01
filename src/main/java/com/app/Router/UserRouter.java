@@ -26,6 +26,7 @@ public class UserRouter {
                 .route(POST("/users/login"),userHandler::login)
                 .andRoute(POST("/users/register"),userHandler::register)
                 .andRoute(PUT("/users/{id}"),userHandler::update)
-                .andRoute(DELETE("/users/{id}"),userHandler::delete);
+                .andRoute(DELETE("/users/{id}"),userHandler::delete)
+                .andRoute(GET("/users"),userHandler::getUserInfo);
     }
 }
