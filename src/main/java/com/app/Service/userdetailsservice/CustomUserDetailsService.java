@@ -24,9 +24,16 @@ import java.util.stream.Collectors;
 @Service
 public class CustomUserDetailsService implements ReactiveUserDetailsService {
 
-    @Autowired private UserRepository userRepository;
-    @Autowired private UserRoleRepository userRoleRepository;
-    @Autowired private RolePrivilegeRepository rolePrivilegeRepository;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final RolePrivilegeRepository rolePrivilegeRepository;
+
+    @Autowired
+    public CustomUserDetailsService(UserRepository userRepository, UserRoleRepository userRoleRepository, RolePrivilegeRepository rolePrivilegeRepository) {
+        this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.rolePrivilegeRepository = rolePrivilegeRepository;
+    }
 
     @Override
     public Mono<UserDetails> findByUsername(String username) {

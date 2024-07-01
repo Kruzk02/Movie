@@ -1,5 +1,9 @@
 package com.app.Config;
 
+import com.app.Repository.RolePrivilegeRepository;
+import com.app.Repository.RoleRepository;
+import com.app.Repository.UserRepository;
+import com.app.Repository.UserRoleRepository;
 import com.app.Service.userdetailsservice.CustomUserDetailsService;
 import com.app.jwt.JwtFilter;
 import com.app.jwt.JwtUtil;
@@ -26,7 +30,18 @@ import org.springframework.web.server.WebFilter;
 @Configuration
 public class SecurityConfig {
 
-    @Autowired private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final RolePrivilegeRepository rolePrivilegeRepository;
+
+    @Autowired
+    public SecurityConfig(JwtUtil jwtUtil, UserRepository userRepository, UserRoleRepository userRoleRepository, RolePrivilegeRepository rolePrivilegeRepository) {
+        this.jwtUtil = jwtUtil;
+        this.userRepository = userRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.rolePrivilegeRepository = rolePrivilegeRepository;
+    }
 
     @Bean
     SecurityWebFilterChain filterChain(ServerHttpSecurity https,ReactiveAuthenticationManager reactiveAuthenticationManager){
@@ -35,15 +50,13 @@ public class SecurityConfig {
             .authenticationManager(reactiveAuthenticationManager)
             .authorizeExchange(auth ->
                 auth
-                    .pathMatchers("/users/login").permitAll()
-                    .pathMatchers("/users/register").permitAll()
-                    .anyExchange().authenticated())
+                    .anyExchange().permitAll())
             .addFilterAt(jwtFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
             .build();
     }
 
     private AuthenticationWebFilter jwtFilter() {
-        return new JwtFilter(reactiveAuthenticationManager(reactiveUserDetailsService(),passwordEncoder()), jwtUtil, new CustomUserDetailsService());
+        return new JwtFilter(reactiveAuthenticationManager(reactiveUserDetailsService(),passwordEncoder()), jwtUtil, reactiveUserDetailsService());
     }
 
     @Bean
@@ -53,7 +66,7 @@ public class SecurityConfig {
 
     @Bean
     ReactiveUserDetailsService reactiveUserDetailsService(){
-        return new CustomUserDetailsService();
+        return new CustomUserDetailsService(userRepository,userRoleRepository,rolePrivilegeRepository);
     }
 
     @Bean
