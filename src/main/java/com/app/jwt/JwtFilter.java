@@ -7,6 +7,7 @@ import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -16,13 +17,13 @@ import reactor.core.publisher.Mono;
 public class JwtFilter extends AuthenticationWebFilter {
 
     private final JwtUtil jwtUtil;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final ReactiveUserDetailsService reactiveUserDetailsService;
 
     @Autowired
-    public JwtFilter(ReactiveAuthenticationManager authenticationManager, JwtUtil jwtUtil, CustomUserDetailsService customUserDetailsService) {
+    public JwtFilter(ReactiveAuthenticationManager authenticationManager, JwtUtil jwtUtil, ReactiveUserDetailsService reactiveUserDetailsService) {
         super(authenticationManager);
         this.jwtUtil = jwtUtil;
-        this.customUserDetailsService = customUserDetailsService;
+        this.reactiveUserDetailsService = reactiveUserDetailsService;
     }
 
     @Override
@@ -31,7 +32,7 @@ public class JwtFilter extends AuthenticationWebFilter {
             .flatMap(token -> {
                 String username = jwtUtil.validateTokenAndGetUsername(token);
                 if (username != null) {
-                    return customUserDetailsService.findByUsername(username)
+                    return reactiveUserDetailsService.findByUsername(username)
                         .flatMap(userDetails -> {
                             Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                             return ReactiveSecurityContextHolder.getContext()
