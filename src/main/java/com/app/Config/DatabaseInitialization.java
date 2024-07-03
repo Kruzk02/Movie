@@ -39,6 +39,7 @@ public class DatabaseInitialization {
 //            executeSqlScript("sql/movie_rating.sql");
 //            executeSqlScript("sql/role_privilege.sql");
 //            executeSqlScript("sql/user_role.sql");
+//            executeSqlScript("sql/verification_token.sql");
 //        } catch (Exception e) {
 //            log.error("Error initializing database: {}", e.getMessage());
 //        }
