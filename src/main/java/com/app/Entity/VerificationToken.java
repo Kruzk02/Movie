@@ -1,6 +1,7 @@
 package com.app.Entity;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDate;
@@ -9,9 +10,13 @@ import java.time.LocalDate;
 public class VerificationToken {
 
     @Id
+    @Column("id")
     private Long id;
+    @Column("token")
     private String token;
+    @Column("user_id")
     private Long userId;
+    @Column("expire_date")
     private LocalDate expireDate;
 
     public VerificationToken() {
