@@ -26,11 +26,13 @@ public class User {
     private Nationality nationality;
     @Column("birth_date")
     private LocalDate birthDate;
+    @Column("enabled")
+    private boolean enabled;
 
     public User() {
     }
 
-    public User(Long id, String username, String email, String password, String phoneNumber, Nationality nationality, LocalDate birthDate) {
+    public User(Long id, String username, String email, String password, String phoneNumber, Nationality nationality, LocalDate birthDate, boolean enabled) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -38,6 +40,7 @@ public class User {
         this.phoneNumber = phoneNumber;
         this.nationality = nationality;
         this.birthDate = birthDate;
+        this.enabled = enabled;
     }
 
     public Long getId() {
@@ -94,5 +97,13 @@ public class User {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
