@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS "users" (
     password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(15) NOT NULL,
     nationality VARCHAR(100) NOT NULL,
-    birth_date DATE NOT NULL
+    birth_date DATE NOT NULL,
+    enabled BOOLEAN
 );

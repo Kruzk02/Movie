@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
                 ))
                 .doOnNext(ReactiveSecurityContextHolder::withAuthentication)
                 .map(auth -> jwtUtil.generateToken(userDTO.getUsername()))
-                .onErrorResume(Exception.class, ex -> Mono.error(new Exception("Authentication failed", ex)))
+                .onErrorResume(Exception.class, ex -> Mono.error(new RuntimeException("Authentication failed", ex)))
                 .doOnNext(token -> System.out.println("Login with a username: " + userDTO.getUsername() + ", token: " + token));
     }
 
@@ -95,6 +95,7 @@ public class UserServiceImpl implements UserService {
                 .then(Mono.defer(() -> {
                     User user = UserMapper.INSTANCE.mapDTOToEntity(userDTO);
                     user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+                    user.setEnabled(false);
 
                     if (!validateEmail(user.getEmail())){
                         throw new EmailValidationException("Invalid email address format: " + user.getEmail());

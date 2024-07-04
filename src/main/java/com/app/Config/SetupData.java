@@ -40,7 +40,7 @@ public class SetupData implements ApplicationListener<ContextRefreshedEvent> {
         if (alreadySetup) return;
 
         setupPrivilegesAndRoles()
-                .then(setupAdminUser())
+//                .then(setupAdminUser())
                 .doOnSuccess(unused -> alreadySetup = true)
                 .subscribe();
     }
@@ -70,10 +70,11 @@ public class SetupData implements ApplicationListener<ContextRefreshedEvent> {
                         User user = new User();
                         user.setUsername("phucnguyen");
                         user.setEmail("phucnguyen@gmail.com");
-                        user.setPassword(passwordEncoder.encode("123123"));
-                        user.setPhoneNumber("84848484848484");
+                        user.setPassword(passwordEncoder.encode("SecureP@ssw0rd"));
+                        user.setPhoneNumber("+84 35 539-0605");
                         user.setNationality(Nationality.USA);
                         user.setBirthDate(LocalDate.of(2002, 1,24));
+                        user.setEnabled(true);
                         return userRepository.save(user);
                     })
                 )
