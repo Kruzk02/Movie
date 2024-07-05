@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS "users" (
     phone_number VARCHAR(15) NOT NULL,
     nationality VARCHAR(100) NOT NULL,
     birth_date DATE NOT NULL,
-    enabled BOOLEAN
+    enabled BOOLEAN DEFAULT FALSE
 );
