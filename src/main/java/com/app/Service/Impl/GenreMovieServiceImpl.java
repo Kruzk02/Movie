@@ -6,7 +6,7 @@ import com.app.Entity.GenreMoviePK;
 import com.app.Entity.Movie;
 import com.app.Repository.GenreMovieRepository;
 import com.app.Service.GenreMovieService;
-import com.app.messaging.processor.Processor;
+import com.app.messaging.MessagingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,14 +19,13 @@ import java.util.stream.Collectors;
 public class GenreMovieServiceImpl implements GenreMovieService {
 
     private final GenreMovieRepository genreMovieRepository;
-    private final Processor<Movie> movieProcessor;
+    private final MessagingService<Movie> movieMessagingService;
 
     @Autowired
-    public GenreMovieServiceImpl(GenreMovieRepository genreMovieRepository, Processor<Movie> movieProcessor) {
+    public GenreMovieServiceImpl(GenreMovieRepository genreMovieRepository, MessagingService<Movie> movieMessagingService) {
         this.genreMovieRepository = genreMovieRepository;
-        this.movieProcessor = movieProcessor;
+        this.movieMessagingService = movieMessagingService;
     }
-
 
     /**
      * Retrieves genres by movie ID.
@@ -48,7 +47,7 @@ public class GenreMovieServiceImpl implements GenreMovieService {
      */
     @Override
     public Mono<Void> saveGenreMovie(GenreDTO genreDTO) {
-        return movieProcessor.getOneData()
+        return movieMessagingService.receiveMessage()
             .flatMapMany(movie -> {
                 Set<GenreMoviePK> genreMovies = genreDTO.getGenreId().stream()
                     .map(genreId -> new GenreMoviePK(genreId,movie.getId()))
@@ -61,7 +60,7 @@ public class GenreMovieServiceImpl implements GenreMovieService {
 
     @Override
     public Mono<Void> updateGenreMovie(GenreDTO genreDTO) {
-        return movieProcessor.getOneData()
+        return movieMessagingService.receiveMessage()
             .flatMapMany(movie -> {
                 Mono<Void> deleteExisting = genreMovieRepository.deleteByMovieId(movie.getId());
 

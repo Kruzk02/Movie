@@ -6,7 +6,7 @@ import com.app.Entity.ActorMoviePK;
 import com.app.Entity.Movie;
 import com.app.Repository.ActorMovieRepository;
 import com.app.Service.ActorMovieService;
-import com.app.messaging.processor.Processor;
+import com.app.messaging.MessagingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,17 +19,17 @@ import java.util.stream.Collectors;
 public class ActorMovieServiceImpl implements ActorMovieService {
 
     private final ActorMovieRepository actorMovieRepository;
-    private final Processor<Movie> movieProcessor;
+    private final MessagingService<Movie> movieMessagingService;
 
     @Autowired
-    public ActorMovieServiceImpl(ActorMovieRepository actorMovieRepository, Processor<Movie> movieProcessor) {
+    public ActorMovieServiceImpl(ActorMovieRepository actorMovieRepository, MessagingService<Movie> movieMessagingService) {
         this.actorMovieRepository = actorMovieRepository;
-        this.movieProcessor = movieProcessor;
+        this.movieMessagingService = movieMessagingService;
     }
 
     @Override
     public Mono<Void> saveActorMovie(ActorMovieDTO actorMovieDTO) {
-        return movieProcessor.getOneData()
+        return movieMessagingService.receiveMessage()
             .flatMapMany(movie -> {
                 Set<ActorMoviePK> actorMovies = actorMovieDTO.getActorId().stream()
                     .map(actorId -> new ActorMoviePK(actorId,movie.getId()))
@@ -42,7 +42,7 @@ public class ActorMovieServiceImpl implements ActorMovieService {
 
     @Override
     public Mono<Void> updateActorMovie(ActorMovieDTO actorMovieDTO) {
-        return movieProcessor.getOneData()
+        return movieMessagingService.receiveMessage()
             .flatMapMany(movie -> {
                 Mono<Void> deleteExisting = actorMovieRepository.deleteByMovieId(movie.getId());
 
