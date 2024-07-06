@@ -6,7 +6,7 @@ import com.app.Expection.MovieNotFound;
 import com.app.Mapper.MovieMapper;
 import com.app.Repository.*;
 import com.app.Service.MovieService;
-import com.app.messaging.producer.Producer;
+import com.app.messaging.MessagingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -19,16 +19,15 @@ import java.time.Duration;
 public class MovieServiceImpl implements MovieService {
     
     private final MovieRepository movieRepository;
-    private final Producer<Movie> movieProducer;
+    private final MessagingService<Movie> movieMessagingService;
     private final ReactiveRedisTemplate<String,Movie> redisTemplate;
 
     @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository, Producer<Movie> movieProducer, ReactiveRedisTemplate<String, Movie> redisTemplate) {
+    public MovieServiceImpl(MovieRepository movieRepository, MessagingService<Movie> movieMessagingService, ReactiveRedisTemplate<String, Movie> redisTemplate) {
         this.movieRepository = movieRepository;
-        this.movieProducer = movieProducer;
+        this.movieMessagingService = movieMessagingService;
         this.redisTemplate = redisTemplate;
     }
-
 
     @Override
     public Flux<Movie> findAll() {
@@ -64,7 +63,7 @@ public class MovieServiceImpl implements MovieService {
     public Mono<Movie> save(MovieDTO movieDTO) {
         Movie movie = MovieMapper.INSTANCE.mapDtoToEntity(movieDTO);
         return movieRepository.save(movie)
-                .doOnNext(movieProducer::send)
+                .doOnNext(movieMessagingService::sendMessage)
                 .log("Save a new movie: " + movie);
     }
 
@@ -77,7 +76,7 @@ public class MovieServiceImpl implements MovieService {
                 existingMovie.setReleaseYear(movieDTO.getRelease_year());
                 existingMovie.setMovieLength(movieDTO.getMovie_length());
 
-                movieProducer.send(existingMovie);
+                movieMessagingService.sendMessage(existingMovie);
                 return movieRepository.save(existingMovie);
             })
         .log("Update a Movie with id: " + id);
