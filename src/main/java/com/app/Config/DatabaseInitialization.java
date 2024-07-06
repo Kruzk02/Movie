@@ -36,7 +36,6 @@ public class DatabaseInitialization {
 //            executeSqlScript("sql/actor_movie.sql");
 //            executeSqlScript("sql/director_movie.sql");
 //            executeSqlScript("sql/genre_movie.sql");
-//            executeSqlScript("sql/movie_rating.sql");
 //            executeSqlScript("sql/role_privilege.sql");
 //            executeSqlScript("sql/user_role.sql");
 //            executeSqlScript("sql/verification_token.sql");
