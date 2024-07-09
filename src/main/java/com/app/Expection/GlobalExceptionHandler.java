@@ -1,6 +1,6 @@
 package com.app.Expection;
 
-import com.app.Service.Impl.ActorServiceImpl;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -79,10 +79,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(SignatureVerificationException.class)
-    public ResponseEntity<ErrorResponse> handleSignatureVerificationException(SignatureVerificationException ex) {
+    @ExceptionHandler(JWTVerificationException.class)
+    public ResponseEntity<ErrorResponse> handleSignatureVerificationException(JWTVerificationException ex) {
         ErrorResponse response = new ErrorResponse("The token signature is invalid or the token has been tampered with. Please provide a valid token.");
         log.error("Signature verification failed: ", ex);
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(UserNotExistingException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotExistingException(UserNotExistingException ex) {
+        ErrorResponse response = new ErrorResponse("User is not existing .Pleas register");
+        log.error(ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 }

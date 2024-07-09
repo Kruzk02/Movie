@@ -31,6 +31,7 @@ public class JwtFilter extends AuthenticationWebFilter {
         return extractToken(exchange)
             .flatMap(token -> {
                 String username = jwtUtil.validateTokenAndGetUsername(token);
+                Long id = jwtUtil.validateTokenAndGetId(token);
                 if (username != null) {
                     return reactiveUserDetailsService.findByUsername(username)
                         .flatMap(userDetails -> {
@@ -38,6 +39,8 @@ public class JwtFilter extends AuthenticationWebFilter {
                             return ReactiveSecurityContextHolder.getContext()
                                 .map(securityContext -> {
                                     securityContext.setAuthentication(authentication);
+                                    exchange.getAttributes().put("username",username);
+                                    exchange.getAttributes().put("userId",id);
                                     return securityContext;
                                 })
                                 .then(chain.filter(exchange));

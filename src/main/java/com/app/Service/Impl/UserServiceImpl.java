@@ -83,8 +83,9 @@ public class UserServiceImpl implements UserService {
                         userDTO.getUsername(), userDTO.getPassword()
                 ))
                 .doOnNext(ReactiveSecurityContextHolder::withAuthentication)
-                .map(auth -> jwtUtil.generateToken(userDTO.getUsername()))
-                .onErrorResume(Exception.class, ex -> Mono.error(new RuntimeException("Authentication failed", ex)))
+                .flatMap(authentication -> userRepository.findByUsername(userDTO.getUsername())
+                        .map(user -> jwtUtil.generateToken(user.getUsername(),user.getId())))
+                .onErrorResume(ex -> Mono.error(new UserNotExistingException("User not existing")))
                 .doOnNext(token -> System.out.println("Login with a username: " + userDTO.getUsername() + ", token: " + token));
     }
 
