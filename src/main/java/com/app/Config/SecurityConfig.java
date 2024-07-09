@@ -24,6 +24,7 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.server.WebFilter;
 
 @EnableWebFluxSecurity
@@ -50,13 +51,23 @@ public class SecurityConfig {
             .authenticationManager(reactiveAuthenticationManager)
             .authorizeExchange(auth ->
                 auth
-                    .anyExchange().permitAll())
-            .addFilterAt(jwtFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
+                    .pathMatchers("/users").authenticated()
+                    .pathMatchers("/users/login").permitAll()
+                    .pathMatchers("/users/register").permitAll()
+                    .pathMatchers("/users/update").authenticated()
+                    .pathMatchers("/users/verify").authenticated()
+                    .anyExchange().permitAll()
+            )
+            .addFilterAt(jwtFilter(reactiveAuthenticationManager,reactiveUserDetailsService()), SecurityWebFiltersOrder.AUTHENTICATION)
             .build();
     }
 
-    private AuthenticationWebFilter jwtFilter() {
-        return new JwtFilter(reactiveAuthenticationManager(reactiveUserDetailsService(),passwordEncoder()), jwtUtil, reactiveUserDetailsService());
+    private WebFilter jwtFilter(ReactiveAuthenticationManager reactiveAuthenticationManager,ReactiveUserDetailsService reactiveUserDetailsService) {
+        JwtFilter jwtFilter = new JwtFilter(reactiveAuthenticationManager, jwtUtil, reactiveUserDetailsService);
+        jwtFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/users/update"));
+        jwtFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/users/verify"));
+        jwtFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/users"));
+        return jwtFilter;
     }
 
     @Bean
