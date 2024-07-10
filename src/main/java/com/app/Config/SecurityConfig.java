@@ -49,25 +49,15 @@ public class SecurityConfig {
         return https
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authenticationManager(reactiveAuthenticationManager)
-            .authorizeExchange(auth ->
-                auth
-                    .pathMatchers("/users").authenticated()
-                    .pathMatchers("/users/login").permitAll()
-                    .pathMatchers("/users/register").permitAll()
-                    .pathMatchers("/users/update").authenticated()
-                    .pathMatchers("/users/verify").authenticated()
-                    .anyExchange().permitAll()
+            .authorizeExchange(auth -> auth
+                .anyExchange().permitAll()
             )
-            .addFilterAt(jwtFilter(reactiveAuthenticationManager,reactiveUserDetailsService()), SecurityWebFiltersOrder.AUTHENTICATION)
+            .addFilterAt(jwtFilter(reactiveAuthenticationManager, reactiveUserDetailsService()), SecurityWebFiltersOrder.AUTHENTICATION)
             .build();
     }
 
-    private WebFilter jwtFilter(ReactiveAuthenticationManager reactiveAuthenticationManager,ReactiveUserDetailsService reactiveUserDetailsService) {
-        JwtFilter jwtFilter = new JwtFilter(reactiveAuthenticationManager, jwtUtil, reactiveUserDetailsService);
-        jwtFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/users/update"));
-        jwtFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/users/verify"));
-        jwtFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.pathMatchers("/users"));
-        return jwtFilter;
+    private WebFilter jwtFilter(ReactiveAuthenticationManager reactiveAuthenticationManager, ReactiveUserDetailsService reactiveUserDetailsService) {
+        return new JwtFilter(reactiveAuthenticationManager, jwtUtil, reactiveUserDetailsService);
     }
 
     @Bean
