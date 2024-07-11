@@ -89,8 +89,8 @@ public class Router {
         return RouterFunctions
                 .route(GET("/ratings/{id}"),ratingHandler::findById)
                 .andRoute(POST("/ratings"),ratingHandler::save)
-                .andRoute(PUT("/ratings"),ratingHandler::update)
-                .andRoute(DELETE("/ratings"),ratingHandler::delete);
+                .andRoute(PUT("/ratings/{id}"),ratingHandler::update)
+                .andRoute(DELETE("/ratings/{id}"),ratingHandler::delete);
     }
 
     /**
