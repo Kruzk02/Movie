@@ -3,13 +3,10 @@ package com.app.Handler;
 import com.app.DTO.DirectorDTO;
 import com.app.DTO.DirectorMovieDTO;
 import com.app.Entity.Director;
-import com.app.Entity.DirectorMoviePK;
 import com.app.Entity.Movie;
 import com.app.Service.DirectorMovieService;
 import com.app.Service.DirectorService;
-import com.app.messaging.processor.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -29,7 +26,6 @@ public class DirectorHandler {
         this.directorMovieService = directorMovieService;
         this.directorService = directorService;
     }
-
 
     public Mono<ServerResponse> findAll(ServerRequest request){
         Flux<Director> directors = directorService.findAll();
