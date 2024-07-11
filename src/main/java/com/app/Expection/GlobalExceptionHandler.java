@@ -92,4 +92,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(MovieNotMatching.class)
+    public ResponseEntity<ErrorResponse> handleMovieNotMatching(MovieNotMatching ex) {
+        ErrorResponse response = new ErrorResponse("Movie is not matching");
+        log.error(ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserNotMatching.class)
+    public ResponseEntity<ErrorResponse> handleUserNotMatching(UserNotMatching ex) {
+        ErrorResponse response = new ErrorResponse("User is not matching");
+        log.error(ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 }
