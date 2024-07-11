@@ -3,11 +3,11 @@ package com.app.DTO;
 
 public class RatingDTO {
 
-    private Long ratingId;
+    private Double rating;
     private Long movieId;
 
-    public Long getRatingId() {
-        return ratingId;
+    public Double getRating() {
+        return rating;
     }
 
     public Long getMovieId() {
