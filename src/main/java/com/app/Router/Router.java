@@ -87,9 +87,10 @@ public class Router {
     @Bean
     public RouterFunction<ServerResponse> ratingRouter(){
         return RouterFunctions
-                .route(GET("/ratings"),ratingHandler::findAll)
-                .andRoute(GET("/ratings/{id}"),ratingHandler::findById)
-                .andRoute(POST("/ratings"),ratingHandler::saveMovieRating);
+                .route(GET("/ratings/{id}"),ratingHandler::findById)
+                .andRoute(POST("/ratings"),ratingHandler::save)
+                .andRoute(PUT("/ratings/{id}"),ratingHandler::update)
+                .andRoute(DELETE("/ratings/{id}"),ratingHandler::delete);
     }
 
     /**

@@ -11,6 +11,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -68,15 +70,14 @@ public class UserHandler {
             .switchIfEmpty(ServerResponse.notFound().build());
     }
 
-    public Mono<ServerResponse> getUserInfo(ServerRequest request){
-        String header = request.headers().header("Authorization").getFirst();
-        if(header != null && header.startsWith("Bearer ")){
-            String token = header.substring(7);
-            return userService.getUserInfo(token)
-                    .flatMap(user -> ServerResponse.ok().bodyValue(user))
-                    .switchIfEmpty(ServerResponse.notFound().build());
-        }
-        return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
+    public Mono<ServerResponse> getUserProfile(ServerRequest request){
+        return Mono.just(request.exchange())
+                .flatMap(exchange -> {
+                    String username = exchange.getAttribute("username");
+                    Long userId = exchange.getAttribute("userId");
+                    return ServerResponse.ok().bodyValue("Username: " + username + ", User ID: " + userId);
+                })
+                .switchIfEmpty(ServerResponse.badRequest().bodyValue("User attributes not found"));
     }
 
 //    public Mono<ServerResponse> checkAdmin(ServerRequest request) {
