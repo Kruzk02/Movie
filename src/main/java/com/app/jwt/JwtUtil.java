@@ -36,6 +36,15 @@ public class JwtUtil {
                 .sign(Algorithm.RSA512(rPubKey,rPriKey));
     }
 
+    public String generateToken(String username,Long id){
+        return JWT.create()
+                .withClaim("userId",id)
+                .withSubject(username)
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
+                .sign(Algorithm.RSA512(rPubKey,rPriKey));
+    }
+
     public DecodedJWT validateToken(String token) throws JWTVerificationException {
         JWTVerifier verifier = JWT.require(Algorithm.RSA512(rPubKey, rPriKey)).build();
         return verifier.verify(token);
@@ -44,6 +53,11 @@ public class JwtUtil {
     public String validateTokenAndGetUsername(String token) throws JWTVerificationException {
         DecodedJWT decodedJWT = validateToken(token);
         return decodedJWT.getSubject();
+    }
+
+    public Long validateTokenAndGetId(String token) throws JWTVerificationException{
+        DecodedJWT decodedJWT = validateToken(token);
+        return decodedJWT.getClaim("userId").asLong();
     }
 }
 

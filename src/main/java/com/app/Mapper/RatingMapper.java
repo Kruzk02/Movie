@@ -11,7 +11,8 @@ public interface RatingMapper {
 
     RatingMapper INSTANCE = Mappers.getMapper(RatingMapper.class);
 
-    @Mapping(source = "ratingId",target = "id")
+    @Mapping(source = "rating",target = "rating")
+    @Mapping(source = "movieId",target = "movieId")
     Rating mappingDtoToEntity(RatingDTO ratingDTO);
 
 }

@@ -24,6 +24,7 @@ import org.springframework.security.web.access.expression.DefaultWebSecurityExpr
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.server.WebFilter;
 
 @EnableWebFluxSecurity
@@ -48,15 +49,15 @@ public class SecurityConfig {
         return https
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authenticationManager(reactiveAuthenticationManager)
-            .authorizeExchange(auth ->
-                auth
-                    .anyExchange().permitAll())
-            .addFilterAt(jwtFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
+            .authorizeExchange(auth -> auth
+                .anyExchange().permitAll()
+            )
+            .addFilterAt(jwtFilter(reactiveAuthenticationManager, reactiveUserDetailsService()), SecurityWebFiltersOrder.AUTHENTICATION)
             .build();
     }
 
-    private AuthenticationWebFilter jwtFilter() {
-        return new JwtFilter(reactiveAuthenticationManager(reactiveUserDetailsService(),passwordEncoder()), jwtUtil, reactiveUserDetailsService());
+    private WebFilter jwtFilter(ReactiveAuthenticationManager reactiveAuthenticationManager, ReactiveUserDetailsService reactiveUserDetailsService) {
+        return new JwtFilter(reactiveAuthenticationManager, jwtUtil, reactiveUserDetailsService);
     }
 
     @Bean

@@ -28,6 +28,6 @@ public class UserRouter {
                 .andRoute(PUT("/users/{id}"),userHandler::update)
                 .andRoute(DELETE("/users/{id}"),userHandler::delete)
                 .andRoute(GET("/users/verify"),userHandler::verifyAccount)
-                .andRoute(GET("/users"),userHandler::getUserInfo);
+                .andRoute(GET("/users/profile"),userHandler::getUserProfile);
     }
 }

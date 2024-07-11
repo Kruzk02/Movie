@@ -1,51 +1,52 @@
 package com.app.Handler;
 
 import com.app.DTO.RatingDTO;
-import com.app.Entity.Movie;
-import com.app.Entity.Rating;
-import com.app.Service.RatingMovieService;
 import com.app.Service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
 public class RatingHandler {
 
-    private final RatingMovieService ratingMovieService;
     private final RatingService ratingService;
 
     @Autowired
-    public RatingHandler(RatingMovieService ratingMovieService, RatingService ratingService) {
-        this.ratingMovieService = ratingMovieService;
+    public RatingHandler(RatingService ratingService) {
         this.ratingService = ratingService;
-    }
-
-    public Mono<ServerResponse> findAll(ServerRequest request){
-        Flux<Rating> ratingFlux = ratingService.findAll();
-        return ServerResponse.ok().body(ratingFlux, Movie.class);
     }
 
     public Mono<ServerResponse> findById(ServerRequest request){
         Long id = Long.valueOf(request.pathVariable("id"));
-        Mono<Rating> ratingMono = ratingService.findById(id);
-        return ratingMono.flatMap(rating -> ServerResponse.ok().bodyValue(rating)
-                .switchIfEmpty(ServerResponse.notFound().build()));
+        return ratingService.findById(id)
+                .flatMap(rating -> ServerResponse.ok().bodyValue(rating))
+                .switchIfEmpty(ServerResponse.notFound().build());
     }
 
-    public Mono<ServerResponse> saveMovieRating(ServerRequest request){
+    public Mono<ServerResponse> save(ServerRequest request){
+        Long userId = request.exchange().getAttribute("userId");
         Mono<RatingDTO> ratingDTOMono = request.bodyToMono(RatingDTO.class);
-        return ratingDTOMono.flatMap(ratingDTO -> ratingMovieService.save(ratingDTO)
-                .flatMap(savedRating -> ServerResponse.ok().bodyValue(savedRating)));
+        return ratingDTOMono.flatMap(ratingDTO -> ratingService.save(ratingDTO,userId)
+                    .flatMap(rating -> ServerResponse.ok().bodyValue(rating))
+        );
     }
 
-    public Mono<ServerResponse> getAverageRating(ServerRequest request){
-        Long movieId = Long.valueOf(request.pathVariable("movieId"));
-        Mono<Double> ratingMono = ratingMovieService.getAverageRating(movieId);
-        return ratingMono.flatMap(rating -> ServerResponse.ok().bodyValue(rating)
-                .switchIfEmpty(ServerResponse.notFound().build()));
+    public Mono<ServerResponse> update(ServerRequest request){
+        Long id = Long.valueOf(request.pathVariable("id"));
+        Long userId = request.exchange().getAttribute("userId");
+        Mono<RatingDTO> ratingDTOMono = request.bodyToMono(RatingDTO.class);
+        return ratingDTOMono.flatMap(ratingDTO -> ratingService.update(id,ratingDTO,userId)
+                .flatMap(rating -> ServerResponse.ok().bodyValue(rating)))
+                .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    public Mono<ServerResponse> delete(ServerRequest request){
+        Long id = Long.valueOf(request.pathVariable("id"));
+        Long userId = request.exchange().getAttribute("userId");
+        return ratingService.delete(id,userId)
+                .then(ServerResponse.ok().build())
+                .switchIfEmpty(ServerResponse.notFound().build());
     }
 }
