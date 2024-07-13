@@ -1,5 +1,6 @@
 package com.app.jwt;
 
+import com.app.Entity.Role;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -13,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtUtil {
@@ -45,6 +47,16 @@ public class JwtUtil {
                 .sign(Algorithm.RSA512(rPubKey,rPriKey));
     }
 
+    public String generateToken(String username, Long id,String role){
+        return JWT.create()
+                .withClaim("userId",id)
+                .withClaim("role",role)
+                .withSubject(username)
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 60 * 1000))
+                .sign(Algorithm.RSA512(rPubKey,rPriKey));
+    }
+
     public DecodedJWT validateToken(String token) throws JWTVerificationException {
         JWTVerifier verifier = JWT.require(Algorithm.RSA512(rPubKey, rPriKey)).build();
         return verifier.verify(token);
@@ -58,6 +70,11 @@ public class JwtUtil {
     public Long validateTokenAndGetId(String token) throws JWTVerificationException{
         DecodedJWT decodedJWT = validateToken(token);
         return decodedJWT.getClaim("userId").asLong();
+    }
+
+    public String validateTokenAndGetRole(String token) {
+        DecodedJWT decodedJWT = validateToken(token);
+        return decodedJWT.getClaim("role").asString();
     }
 }
 
