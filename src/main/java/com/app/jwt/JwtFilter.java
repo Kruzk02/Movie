@@ -1,5 +1,6 @@
 package com.app.jwt;
 
+import com.app.Entity.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.security.web.server.authentication.AuthenticationWebF
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 public class JwtFilter extends AuthenticationWebFilter {
 
@@ -33,9 +36,11 @@ public class JwtFilter extends AuthenticationWebFilter {
                 .flatMap(token -> {
                     String username = jwtUtil.validateTokenAndGetUsername(token);
                     Long id = jwtUtil.validateTokenAndGetId(token);
+                    String role = jwtUtil.validateTokenAndGetRole(token);
                     if (username != null) {
                         exchange.getAttributes().put("username",username);
                         exchange.getAttributes().put("userId",id);
+                        exchange.getAttributes().put("role",role);
                         return reactiveUserDetailsService.findByUsername(username)
                                 .flatMap(userDetails -> {
                                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
