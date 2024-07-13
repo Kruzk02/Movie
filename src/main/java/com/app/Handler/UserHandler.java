@@ -5,15 +5,10 @@ import com.app.Service.EmailService;
 import com.app.Service.UserService;
 import com.app.Service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class UserHandler {
@@ -75,15 +70,9 @@ public class UserHandler {
                 .flatMap(exchange -> {
                     String username = exchange.getAttribute("username");
                     Long userId = exchange.getAttribute("userId");
-                    return ServerResponse.ok().bodyValue("Username: " + username + ", User ID: " + userId);
+                    String role = exchange.getAttribute("role");
+                    return ServerResponse.ok().bodyValue("Username: " + username + ", User ID: " + userId + ", Roles: " + role);
                 })
                 .switchIfEmpty(ServerResponse.badRequest().bodyValue("User attributes not found"));
     }
-
-//    public Mono<ServerResponse> checkAdmin(ServerRequest request) {
-//        String username = request.pathVariable("username");
-//        return userService.isUserHasAdminRole(username)
-//                .flatMap(isAdmin -> ServerResponse.ok().bodyValue("User is an admin"))
-//                .onErrorResume(IllegalAccessException.class, e -> ServerResponse.status(HttpStatus.FORBIDDEN).bodyValue(e.getMessage()));
-//    }
 }
