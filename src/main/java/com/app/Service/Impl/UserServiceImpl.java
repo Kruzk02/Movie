@@ -20,7 +20,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,14 +52,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<User> getUserInfo(String token) {
-        String username = jwtUtil.validateTokenAndGetUsername(token);
-        return userRepository.findByUsername(username)
-                .switchIfEmpty(Mono.error(new UserNotFound("User not found with a username: " + username)))
-                .log("Find user with a username: " + username);
-    }
-
-    @Override
     public Mono<User> update(Long id, UserDTO userDTO) {
         return userRepository.findById(id)
                 .switchIfEmpty(Mono.error(new UserNotFound("User not found with a id: " + id)))
@@ -84,8 +75,9 @@ public class UserServiceImpl implements UserService {
                 ))
                 .doOnNext(ReactiveSecurityContextHolder::withAuthentication)
                 .flatMap(authentication -> userRepository.findByUsername(userDTO.getUsername())
-                        .map(user -> jwtUtil.generateToken(user.getUsername(),user.getId())))
-                .onErrorResume(ex -> Mono.error(new UserNotExistingException("User not existing")))
+                        .flatMap(user -> userRoleRepository.findRoleByUsername(user.getUsername())
+                                .map(role -> jwtUtil.generateToken(user.getUsername(),user.getId(), role.getName()))))
+                .onErrorResume(ex -> Mono.error(new UserNotExistingException("User not existing " + ex.getMessage())))
                 .doOnNext(token -> System.out.println("Login with a username: " + userDTO.getUsername() + ", token: " + token));
     }
 
@@ -124,20 +116,6 @@ public class UserServiceImpl implements UserService {
                 .switchIfEmpty(Mono.error(new UserNotFound("User not found with a id: " + id)))
                 .flatMap(userRepository::delete)
                 .log("Delete user with a id: " + id);
-    }
-
-    @Override
-    public Mono<Boolean> isUserHasAdminRole(String username) {
-        return userRepository.findByUsername(username)
-            .flatMap(user -> userRoleRepository.findRolesByUsername(user.getUsername())
-                .filter(role -> Objects.equals(role.getName(), "ROLE_ADMIN"))
-                    .hasElements()
-                    .flatMap(isAdmin -> {
-                        if (Boolean.FALSE.equals(isAdmin)) {
-                            return Mono.error(new IllegalAccessException("User does not have admin privileges"));
-                        }
-                        return Mono.just(true);
-                    }));
     }
 
     //thienphuc123456@gmail.com
