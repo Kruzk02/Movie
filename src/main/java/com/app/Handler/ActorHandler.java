@@ -3,7 +3,6 @@ package com.app.Handler;
 import com.app.DTO.ActorDTO;
 import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
-import com.app.Entity.ActorMoviePK;
 import com.app.Entity.Movie;
 import com.app.Service.ActorMovieService;
 import com.app.Service.ActorService;
@@ -15,6 +14,9 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
+import java.util.function.Function;
 
 @Component
 public class ActorHandler {
@@ -41,33 +43,41 @@ public class ActorHandler {
     }
 
     public Mono<ServerResponse> save(ServerRequest request){
-        Mono<ActorDTO> actorDTOMono = request.bodyToMono(ActorDTO.class);
-        return actorDTOMono.flatMap(actorDTO -> actorService.save(actorDTO)
-            .flatMap(savedActor -> ServerResponse.ok().bodyValue(savedActor)));
+        return checkRoleAndProcess(request,role -> {
+            Mono<ActorDTO> actorDTOMono = request.bodyToMono(ActorDTO.class);
+            return actorDTOMono.flatMap(actorDTO -> actorService.save(actorDTO)
+                    .flatMap(savedActor -> ServerResponse.ok().bodyValue(savedActor)));
+        });
     }
 
     public Mono<ServerResponse> update(ServerRequest request){
-        Long id = Long.valueOf(request.pathVariable("id"));
-        Mono<ActorDTO> actorDTOMono = request.bodyToMono(ActorDTO.class);
-        return actorDTOMono.flatMap(actorDTO -> actorService.update(id,actorDTO))
-            .flatMap(savedActor -> ServerResponse.ok().bodyValue(savedActor))
-            .switchIfEmpty(ServerResponse.notFound().build());
+        return checkRoleAndProcess(request,role -> {
+            Long id = Long.valueOf(request.pathVariable("id"));
+            Mono<ActorDTO> actorDTOMono = request.bodyToMono(ActorDTO.class);
+            return actorDTOMono.flatMap(actorDTO -> actorService.update(id,actorDTO))
+                    .flatMap(savedActor -> ServerResponse.ok().bodyValue(savedActor))
+                    .switchIfEmpty(ServerResponse.notFound().build());
+        });
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){
-        Long id = Long.valueOf(request.pathVariable("id"));
-        return actorService.delete(id)
-            .then(ServerResponse.ok().build())
-            .switchIfEmpty(ServerResponse.notFound().build());
+        return checkRoleAndProcess(request,role -> {
+            Long id = Long.valueOf(request.pathVariable("id"));
+            return actorService.delete(id)
+                    .then(ServerResponse.ok().build())
+                    .switchIfEmpty(ServerResponse.notFound().build());
+        });
     }
 
     public Mono<ServerResponse> saveActorMovie(ServerRequest request){
-        return request.bodyToMono(ActorMovieDTO.class)
-            .flatMap(actorMovieService::saveActorMovie)
-                .flatMap(savedActorMovie -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(savedActorMovie))
-                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving actor: " + error.getMessage()));
+        return checkRoleAndProcess(request,role ->
+            request.bodyToMono(ActorMovieDTO.class)
+                    .flatMap(actorMovieService::saveActorMovie)
+                    .flatMap(savedActorMovie -> ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(savedActorMovie))
+                    .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving actor: " + error.getMessage()))
+        );
     }
 
     public Mono<ServerResponse> findMovieByActorId(ServerRequest request) {
@@ -81,11 +91,27 @@ public class ActorHandler {
     }
 
     public Mono<ServerResponse> updateActorMovie(ServerRequest request){
-        return request.bodyToMono(ActorMovieDTO.class)
-            .flatMap(actorMovieService::updateActorMovie)
+        return checkRoleAndProcess(request,role -> request.bodyToMono(ActorMovieDTO.class)
+                .flatMap(actorMovieService::updateActorMovie)
                 .flatMap(savedActorMovie -> ServerResponse.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(savedActorMovie))
-                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + error.getMessage()));
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(savedActorMovie))
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + error.getMessage()))
+        );
+    }
+
+
+    private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
+        String role = request.exchange().getAttribute("role");
+
+        if (Objects.isNull(role)) {
+            return ServerResponse.badRequest().bodyValue("User attributes not found");
+        }
+
+        if ("ROLE_USER".equals(role)) {
+            return ServerResponse.status(403).build();
+        }
+
+        return processFunction.apply(role);
     }
 }

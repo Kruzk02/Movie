@@ -15,6 +15,9 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+import java.util.function.Function;
+
 @Component
 public class DirectorHandler {
 
@@ -40,42 +43,50 @@ public class DirectorHandler {
     }
 
     public Mono<ServerResponse> create(ServerRequest request){
-        Mono<DirectorDTO> directorMono = request.bodyToMono(DirectorDTO.class);
-        return directorMono.flatMap(directorDTO -> directorService.save(directorDTO)
-                .flatMap(savedDirector -> ServerResponse.ok().bodyValue(savedDirector)));
+        return checkRoleAndProcess(request,role -> {
+            Mono<DirectorDTO> directorMono = request.bodyToMono(DirectorDTO.class);
+            return directorMono.flatMap(directorDTO -> directorService.save(directorDTO)
+                    .flatMap(savedDirector -> ServerResponse.ok().bodyValue(savedDirector)));
+        });
     }
 
     public Mono<ServerResponse> update(ServerRequest request){
-        Long id = Long.valueOf(request.pathVariable("id"));
-        Mono<DirectorDTO> directorMono = request.bodyToMono(DirectorDTO.class);
-        return directorMono.flatMap(directorDTO -> directorService.update(id,directorDTO))
-                .flatMap(savedDirector -> ServerResponse.ok().bodyValue(savedDirector))
-                .switchIfEmpty(ServerResponse.notFound().build());
+        return checkRoleAndProcess(request,role -> {
+            Long id = Long.valueOf(request.pathVariable("id"));
+            Mono<DirectorDTO> directorMono = request.bodyToMono(DirectorDTO.class);
+            return directorMono.flatMap(directorDTO -> directorService.update(id,directorDTO))
+                    .flatMap(savedDirector -> ServerResponse.ok().bodyValue(savedDirector))
+                    .switchIfEmpty(ServerResponse.notFound().build());
+        });
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){
-        Long id = Long.valueOf(request.pathVariable("id"));
-        return directorService.delete(id)
-                .then(ServerResponse.ok().build())
-                .switchIfEmpty(ServerResponse.notFound().build());
+        return checkRoleAndProcess(request,role -> {
+            Long id = Long.valueOf(request.pathVariable("id"));
+            return directorService.delete(id)
+                    .then(ServerResponse.ok().build())
+                    .switchIfEmpty(ServerResponse.notFound().build());
+        });
     }
 
     public Mono<ServerResponse> saveDirectorMovie(ServerRequest request){
-        return request.bodyToMono(DirectorMovieDTO.class)
-            .flatMap(directorMovieService::saveDirectorMovie)
+        return checkRoleAndProcess(request,role -> request.bodyToMono(DirectorMovieDTO.class)
+                .flatMap(directorMovieService::saveDirectorMovie)
                 .flatMap(savedDirectorMovie -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedDirectorMovie))
-                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage()));
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + error.getMessage()))
+        );
     }
 
     public Mono<ServerResponse> updateDirectorMovie(ServerRequest request){
-        return request.bodyToMono(DirectorMovieDTO.class)
+        return checkRoleAndProcess(request,role -> request.bodyToMono(DirectorMovieDTO.class)
                 .flatMap(directorMovieService::updateDirectorMovie)
-                    .flatMap(savedDirectorMovie -> ServerResponse.ok()
+                .flatMap(savedDirectorMovie -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedDirectorMovie))
-                    .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update director: " + error.getMessage()));
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update director: " + error.getMessage()))
+        );
     }
 
     public Mono<ServerResponse> findMovieByDirectorId(ServerRequest request){
@@ -86,5 +97,19 @@ public class DirectorHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(movies))
             .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
+        String role = request.exchange().getAttribute("role");
+
+        if (Objects.isNull(role)) {
+            return ServerResponse.badRequest().bodyValue("User attributes not found");
+        }
+
+        if ("ROLE_USER".equals(role)) {
+            return ServerResponse.status(403).build();
+        }
+
+        return processFunction.apply(role);
     }
 }
