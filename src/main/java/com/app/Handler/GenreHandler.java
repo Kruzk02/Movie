@@ -14,6 +14,9 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+import java.util.function.Function;
+
 @Component
 public class GenreHandler {
 
@@ -74,22 +77,38 @@ public class GenreHandler {
      * @return A Mono emitting the ServerResponse containing the saved genre movie or an error message in case of failure.
      */
     public Mono<ServerResponse> saveGenreMovie(ServerRequest request){
-        return request.bodyToMono(GenreDTO.class)
-            .flatMap(genreMovieService::saveGenreMovie)
-            .flatMap(savedGenreMovie -> ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(savedGenreMovie))
-            .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .bodyValue("Error saving genre: " + error.getMessage()));
+         return checkRoleAndProcess(request,role -> request.bodyToMono(GenreDTO.class)
+                 .flatMap(genreMovieService::saveGenreMovie)
+                 .flatMap(savedGenreMovie -> ServerResponse.ok()
+                         .contentType(MediaType.APPLICATION_JSON)
+                         .bodyValue(savedGenreMovie))
+                 .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                         .bodyValue("Error saving genre: " + error.getMessage()))
+         );
     }
 
     public Mono<ServerResponse> updateGenreMovie(ServerRequest request){
-        return request.bodyToMono(GenreDTO.class)
-                .flatMap(genreMovieService::updateGenreMovie)
-                .flatMap(savedGenreMovie -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(savedGenreMovie))
-                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .bodyValue("Error update genre: " + error.getMessage()));
+         return checkRoleAndProcess(request,role ->
+             request.bodyToMono(GenreDTO.class)
+                 .flatMap(genreMovieService::updateGenreMovie)
+                 .flatMap(savedGenreMovie -> ServerResponse.ok()
+                         .contentType(MediaType.APPLICATION_JSON)
+                         .bodyValue(savedGenreMovie))
+                 .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                         .bodyValue("Error update genre: " + error.getMessage())));
+    }
+
+    private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
+        String role = request.exchange().getAttribute("role");
+
+        if (Objects.isNull(role)) {
+            return ServerResponse.badRequest().bodyValue("User attributes not found");
+        }
+
+        if ("ROLE_USER".equals(role)) {
+            return ServerResponse.status(403).build();
+        }
+
+        return processFunction.apply(role);
     }
 }
