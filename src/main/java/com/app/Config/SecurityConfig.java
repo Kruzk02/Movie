@@ -35,13 +35,15 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final RolePrivilegeRepository rolePrivilegeRepository;
+    private final RateLimitFilter rateLimitFilter;
 
     @Autowired
-    public SecurityConfig(JwtUtil jwtUtil, UserRepository userRepository, UserRoleRepository userRoleRepository, RolePrivilegeRepository rolePrivilegeRepository) {
+    public SecurityConfig(JwtUtil jwtUtil, UserRepository userRepository, UserRoleRepository userRoleRepository, RolePrivilegeRepository rolePrivilegeRepository, RateLimitFilter rateLimitFilter) {
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
         this.rolePrivilegeRepository = rolePrivilegeRepository;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -52,6 +54,7 @@ public class SecurityConfig {
             .authorizeExchange(auth -> auth
                 .anyExchange().permitAll()
             )
+            .addFilterAt(rateLimitFilter,SecurityWebFiltersOrder.FIRST)
             .addFilterAt(jwtFilter(reactiveAuthenticationManager, reactiveUserDetailsService()), SecurityWebFiltersOrder.AUTHENTICATION)
             .build();
     }
