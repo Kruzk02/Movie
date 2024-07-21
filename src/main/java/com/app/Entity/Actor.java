@@ -20,16 +20,19 @@ public class Actor {
     private LocalDate birthDate;
     @Column("nationality")
     private Nationality nationality;
+    @Column("photo")
+    private String photo;
 
     public Actor() {
     }
 
-    public Actor(Long id, String firstName, String lastName, LocalDate birthDate, Nationality nationality) {
+    public Actor(Long id, String firstName, String lastName, LocalDate birthDate, Nationality nationality, String photo) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birthDate = birthDate;
         this.nationality = nationality;
+        this.photo = photo;
     }
 
     public Long getId() {
@@ -72,6 +75,14 @@ public class Actor {
         this.nationality = nationality;
     }
 
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
     @Override
     public String toString() {
         return "Actor{" +
@@ -80,6 +91,7 @@ public class Actor {
                 ", lastName='" + lastName + '\'' +
                 ", birthDate=" + birthDate +
                 ", nationality=" + nationality +
+                ", photo='" + photo + '\'' +
                 '}';
     }
 }
