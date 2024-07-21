@@ -15,17 +15,23 @@ public class Movie implements Serializable {
     private String title;
     @Column("release_year")
     private LocalDate releaseYear;
-    @Column("length")
-    private Long movieLength;
+    @Column("description")
+    private String description;
+    @Column("seasons")
+    private byte seasons;
+    @Column("poster")
+    private String poster;
 
     public Movie() {
     }
 
-    public Movie(Long id, String title, LocalDate releaseYear, Long movieLength) {
+    public Movie(Long id, String title, LocalDate releaseYear, String description, byte seasons, String poster) {
         this.id = id;
         this.title = title;
         this.releaseYear = releaseYear;
-        this.movieLength = movieLength;
+        this.description = description;
+        this.seasons = seasons;
+        this.poster = poster;
     }
 
     public Long getId() {
@@ -52,12 +58,28 @@ public class Movie implements Serializable {
         this.releaseYear = releaseYear;
     }
 
-    public Long getMovieLength() {
-        return movieLength;
+    public String getDescription() {
+        return description;
     }
 
-    public void setMovieLength(Long movieLength) {
-        this.movieLength = movieLength;
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public byte getSeasons() {
+        return seasons;
+    }
+
+    public void setSeasons(byte seasons) {
+        this.seasons = seasons;
+    }
+
+    public String getPoster() {
+        return poster;
+    }
+
+    public void setPoster(String poster) {
+        this.poster = poster;
     }
 
     @Override
@@ -66,7 +88,9 @@ public class Movie implements Serializable {
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", releaseYear=" + releaseYear +
-                ", movieLength=" + movieLength +
+                ", description='" + description + '\'' +
+                ", seasons=" + seasons +
+                ", poster='" + poster + '\'' +
                 '}';
     }
 }
