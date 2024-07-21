@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS "genre" (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(100) NOT NULL
 );
 
 CREATE INDEX idx_genre_name ON genre(name);
