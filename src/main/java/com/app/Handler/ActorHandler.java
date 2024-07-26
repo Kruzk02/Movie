@@ -6,15 +6,22 @@ import com.app.Entity.Actor;
 import com.app.Entity.Movie;
 import com.app.Service.ActorMovieService;
 import com.app.Service.ActorService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
+import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -42,22 +49,73 @@ public class ActorHandler {
             .switchIfEmpty(ServerResponse.notFound().build()));
     }
 
-    public Mono<ServerResponse> save(ServerRequest request){
-        return checkRoleAndProcess(request,role -> {
-            Mono<ActorDTO> actorDTOMono = request.bodyToMono(ActorDTO.class);
-            return actorDTOMono.flatMap(actorDTO -> actorService.save(actorDTO)
-                    .flatMap(savedActor -> ServerResponse.ok().bodyValue(savedActor)));
-        });
+    public Mono<ServerResponse> save(ServerRequest request) {
+        return checkRoleAndProcess(request, role -> request.multipartData().flatMap(parts -> {
+            Map<String, Part> partMap = parts.toSingleValueMap();
+            partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
+
+            FilePart photo = (FilePart) partMap.get("photo");
+            if (photo == null) {
+                return Mono.error(new IllegalArgumentException("Photo file is missing"));
+            }
+
+            String firstName = getFormFieldValue(partMap, "firstName");
+            String lastName = getFormFieldValue(partMap, "lastName");
+            String birthDate = getFormFieldValue(partMap, "birthDate");
+            String nationality = getFormFieldValue(partMap, "nationality");
+
+            if (firstName == null || lastName == null || birthDate == null || nationality == null) {
+                return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
+            }
+
+            ActorDTO actorDTO = new ActorDTO();
+            actorDTO.setFirstName(firstName);
+            actorDTO.setLastName(lastName);
+            actorDTO.setBirthDate(LocalDate.parse(birthDate));
+            actorDTO.setNationality(nationality);
+
+            String filename = RandomStringUtils.randomAlphabetic(15) + ".png";
+            return actorService.save(actorDTO,photo,filename)
+                    .flatMap(actor -> ServerResponse.ok().bodyValue(actor))
+                    .switchIfEmpty(ServerResponse.notFound().build())
+                    .onErrorResume(e -> ServerResponse.ok().bodyValue("Error saving actor: " + e.getMessage()));
+        }));
     }
 
     public Mono<ServerResponse> update(ServerRequest request){
-        return checkRoleAndProcess(request,role -> {
+        return checkRoleAndProcess(request, role -> request.multipartData().flatMap(parts -> {
+            Map<String, Part> partMap = parts.toSingleValueMap();
+
+            partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
+
+            FilePart photo = (FilePart) partMap.get("photo");
+            if (photo == null) {
+                return Mono.error(new IllegalArgumentException("Photo file is missing"));
+            }
+
+            String firstName = getFormFieldValue(partMap, "firstName");
+            String lastName = getFormFieldValue(partMap, "lastName");
+            String birthDate = getFormFieldValue(partMap, "birthDate");
+            String nationality = getFormFieldValue(partMap, "nationality");
+
+            if (firstName == null || lastName == null || birthDate == null || nationality == null) {
+                return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
+            }
+
+            ActorDTO actorDTO = new ActorDTO();
+            actorDTO.setFirstName(firstName);
+            actorDTO.setLastName(lastName);
+            actorDTO.setBirthDate(LocalDate.parse(birthDate));
+            actorDTO.setNationality(nationality);
+
             Long id = Long.valueOf(request.pathVariable("id"));
-            Mono<ActorDTO> actorDTOMono = request.bodyToMono(ActorDTO.class);
-            return actorDTOMono.flatMap(actorDTO -> actorService.update(id,actorDTO))
-                    .flatMap(savedActor -> ServerResponse.ok().bodyValue(savedActor))
-                    .switchIfEmpty(ServerResponse.notFound().build());
-        });
+            String filename = RandomStringUtils.randomAlphabetic(15) + ".png";
+
+            return actorService.update(id,actorDTO,photo,filename)
+                    .flatMap(actor -> ServerResponse.ok().bodyValue(actor))
+                    .switchIfEmpty(ServerResponse.notFound().build())
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + e.getMessage()));
+        }));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){
@@ -100,6 +158,13 @@ public class ActorHandler {
         );
     }
 
+    private String getFormFieldValue(Map<String, Part> partMap, String fieldName) {
+        Part part = partMap.get(fieldName);
+        if (part instanceof FormFieldPart) {
+            return ((FormFieldPart) part).value();
+        }
+        return null;
+    }
 
     private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
         String role = request.exchange().getAttribute("role");
