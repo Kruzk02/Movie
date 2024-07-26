@@ -13,6 +13,7 @@ public interface MovieMapper {
 
     @Mapping(source = "title",target = "title")
     @Mapping(source = "release_year",target = "releaseYear")
-    @Mapping(source = "movie_length",target = "movieLength")
+    @Mapping(source = "description",target = "description")
+    @Mapping(source = "seasons",target = "seasons")
     Movie mapDtoToEntity(MovieDTO movieDTO);
 }
