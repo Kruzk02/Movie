@@ -7,8 +7,10 @@ import com.app.Expection.DirectorNotFound;
 import com.app.Mapper.DirectorMapper;
 import com.app.Repository.DirectorRepository;
 import com.app.Service.DirectorService;
+import com.app.Service.FileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,11 +21,13 @@ import java.time.Duration;
 public class DirectorServiceImpl implements DirectorService {
 
     private final DirectorRepository directorRepository;
+    private final FileService fileService;
     private final ReactiveRedisTemplate<String,Director> redisTemplate;
 
     @Autowired
-    public DirectorServiceImpl(DirectorRepository directorRepository, ReactiveRedisTemplate<String, Director> redisTemplate) {
+    public DirectorServiceImpl(DirectorRepository directorRepository, FileService fileService, ReactiveRedisTemplate<String, Director> redisTemplate) {
         this.directorRepository = directorRepository;
+        this.fileService = fileService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -54,13 +58,19 @@ public class DirectorServiceImpl implements DirectorService {
     }
 
     @Override
-    public Mono<Director> save(DirectorDTO directorDTO) {
-        Director director = DirectorMapper.INSTANCE.mapDirectorDtoToDirector(directorDTO);
-        return directorRepository.save(director);
+    public Mono<Director> save(DirectorDTO directorDTO, FilePart photo, String filename) {
+        return fileService.save(photo,"directorPhoto",filename)
+                .then(Mono.fromCallable(() -> {
+                    Director director = DirectorMapper.INSTANCE.mapDirectorDtoToDirector(directorDTO);
+                    director.setPhoto(filename);
+                    return director;
+                }))
+                .flatMap(directorRepository::save)
+                .log("Save a new Director: " + directorDTO);
     }
 
     @Override
-    public Mono<Director> update(Long id, DirectorDTO directorDTO) {
+    public Mono<Director> update(Long id, DirectorDTO directorDTO, FilePart photo,String filename) {
         return directorRepository.findById(id)
             .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
             .flatMap(existingDirector ->{
@@ -69,7 +79,14 @@ public class DirectorServiceImpl implements DirectorService {
                 existingDirector.setBirthDate(directorDTO.getBirthDate());
                 existingDirector.setNationality(Enum.valueOf(Nationality.class,directorDTO.getNationality()));
 
-                return directorRepository.save(existingDirector);
+                return fileService.delete("directorPhoto",existingDirector.getPhoto())
+                    .then(fileService.save(photo,"directorPhoto",filename)
+                        .then(Mono.fromCallable(() -> {
+                            existingDirector.setPhoto(filename);
+                            return existingDirector;
+                        }))
+                        .flatMap(directorRepository::save)
+                    );
             })
             .log("Update a director with a id: " + id);
     }
@@ -78,7 +95,10 @@ public class DirectorServiceImpl implements DirectorService {
     public Mono<Void> delete(Long id) {
         return directorRepository.findById(id)
             .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
-            .flatMap(directorRepository::delete)
+            .flatMap(director -> {
+                fileService.delete("directorPhoto",director.getPhoto());
+                return directorRepository.delete(director);
+            })
             .log("Delete a director with a id: " + id);
     }
 }
