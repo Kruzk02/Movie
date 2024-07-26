@@ -16,6 +16,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final Logger log = LogManager.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex){
+        ErrorResponse response = new ErrorResponse(ex.getMessage());
+        log.error(ex.getMessage());
+        return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(DirectorNotFound.class)
     public ResponseEntity<ErrorResponse> handleDirectorNotFound(DirectorNotFound ex){
         ErrorResponse response = new ErrorResponse("Director Not Found");
