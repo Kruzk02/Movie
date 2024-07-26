@@ -2,14 +2,22 @@ package com.app.Handler;
 
 import com.app.DTO.MovieDTO;
 import com.app.Entity.Movie;
+import com.app.Expection.MovieNotFound;
 import com.app.Service.MovieService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
+import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -36,21 +44,71 @@ public class MovieHandler {
     }
 
     public Mono<ServerResponse> save(ServerRequest request) {
-        return checkRoleAndProcess(request, role -> {
-            Mono<MovieDTO> movieDTOMono = request.bodyToMono(MovieDTO.class);
-            return movieDTOMono.flatMap(movieDTO -> movieService.save(movieDTO)
-                    .flatMap(savedMovie -> ServerResponse.ok().bodyValue(savedMovie)));
-        });
+        return checkRoleAndProcess(request, role -> request.multipartData().flatMap(parts ->{
+            Map<String, Part> partMap = parts.toSingleValueMap();
+            partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
+
+            FilePart poster = (FilePart) partMap.get("poster");
+            if (poster == null) {
+                return Mono.error(new IllegalArgumentException("Poster file is missing"));
+            }
+
+            String title = getFormFieldValue(partMap,"title");
+            String release_year = getFormFieldValue(partMap,"release_year");
+            String description = getFormFieldValue(partMap,"description");
+            String seasons = getFormFieldValue(partMap,"seasons");
+
+            if (title == null || release_year == null || description == null || seasons == null) {
+                return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(15) + ".png";
+
+            MovieDTO movieDTO = new MovieDTO();
+            movieDTO.setTitle(title);
+            movieDTO.setDescription(description);
+            movieDTO.setRelease_year(LocalDate.parse(release_year));
+            movieDTO.setSeasons(Byte.parseByte(seasons));
+
+            return movieService.save(movieDTO,poster,filename)
+                            .flatMap(movie -> ServerResponse.ok().bodyValue(movie))
+                            .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie: " + e.getMessage()));
+        }));
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        return checkRoleAndProcess(request, role -> {
+        return checkRoleAndProcess(request, role -> request.multipartData().flatMap(parts -> {
+            Map<String,Part> partMap = parts.toSingleValueMap();
+            partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
+
+            FilePart poster = (FilePart) partMap.get("poster");
+            if (poster == null) {
+                return Mono.error(new IllegalArgumentException("Poster file is missing"));
+            }
+
+            String title = getFormFieldValue(partMap,"title");
+            String release_year = getFormFieldValue(partMap,"release_year");
+            String description = getFormFieldValue(partMap,"description");
+            String seasons = getFormFieldValue(partMap,"seasons");
+
+            if (title == null || release_year == null || description == null || seasons == null) {
+                return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(15)+".png";
             Long id = Long.valueOf(request.pathVariable("id"));
-            Mono<MovieDTO> movieDTOMono = request.bodyToMono(MovieDTO.class);
-            return movieDTOMono.flatMap(movieDTO -> movieService.update(id, movieDTO)
-                    .flatMap(savedMovie -> ServerResponse.ok().bodyValue(savedMovie))
-                    .switchIfEmpty(ServerResponse.notFound().build()));
-        });
+
+            MovieDTO movieDTO = new MovieDTO();
+            movieDTO.setTitle(title);
+            movieDTO.setDescription(description);
+            movieDTO.setRelease_year(LocalDate.parse(release_year));
+            movieDTO.setSeasons(Byte.parseByte(seasons));
+
+            return movieService.update(id,movieDTO,poster,filename)
+                .flatMap(movie -> ServerResponse.ok().bodyValue(movie))
+                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
+                .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update movie: " + e.getMessage()));
+        }));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
@@ -60,6 +118,14 @@ public class MovieHandler {
                     .then(ServerResponse.ok().build())
                     .switchIfEmpty(ServerResponse.notFound().build());
         });
+    }
+
+    private String getFormFieldValue(Map<String,Part> partMap,String fieldName) {
+        Part part = partMap.get(fieldName);
+        if (part instanceof FormFieldPart) {
+            return ((FormFieldPart) part).value();
+        }
+        return null;
     }
 
     private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
