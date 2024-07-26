@@ -6,15 +6,21 @@ import com.app.Entity.Director;
 import com.app.Entity.Movie;
 import com.app.Service.DirectorMovieService;
 import com.app.Service.DirectorService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.FormFieldPart;
+import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -43,21 +49,67 @@ public class DirectorHandler {
     }
 
     public Mono<ServerResponse> create(ServerRequest request){
-        return checkRoleAndProcess(request,role -> {
-            Mono<DirectorDTO> directorMono = request.bodyToMono(DirectorDTO.class);
-            return directorMono.flatMap(directorDTO -> directorService.save(directorDTO)
-                    .flatMap(savedDirector -> ServerResponse.ok().bodyValue(savedDirector)));
-        });
+        return checkRoleAndProcess(request,role -> request.multipartData().flatMap(parts -> {
+            Map<String, Part> partMap = parts.toSingleValueMap();
+
+            FilePart photo = (FilePart) partMap.get("photo");
+            if (photo == null) {
+                return Mono.error(new IllegalArgumentException("Photo file is missing"));
+            }
+
+            String firstName = getFormFieldValue(partMap, "firstName");
+            String lastName = getFormFieldValue(partMap, "lastName");
+            String birthDate = getFormFieldValue(partMap, "birthDate");
+            String nationality = getFormFieldValue(partMap, "nationality");
+
+            if (firstName == null || lastName == null || birthDate == null || nationality == null) {
+                return Mono.error(new IllegalArgumentException("One or two form fields are missing"));
+            }
+
+            DirectorDTO directorDTO = new DirectorDTO();
+            directorDTO.setFirstName(firstName);
+            directorDTO.setLastName(lastName);
+            directorDTO.setNationality(nationality);
+            directorDTO.setBirthDate(LocalDate.parse(birthDate));
+
+            String filename = RandomStringUtils.randomAlphabetic(15)+".png";
+            return directorService.save(directorDTO,photo,filename)
+                    .flatMap(director -> ServerResponse.ok().bodyValue(director))
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + e.getMessage()));
+        }));
     }
 
     public Mono<ServerResponse> update(ServerRequest request){
-        return checkRoleAndProcess(request,role -> {
+        return checkRoleAndProcess(request,role -> request.multipartData().flatMap(parts -> {
+            Map<String,Part> partMap = parts.toSingleValueMap();
+
+            FilePart photo = (FilePart) partMap.get("photo");
+            if (photo == null) {
+                return Mono.error(new IllegalArgumentException("Photo file is missing"));
+            }
+
+            String firstName = getFormFieldValue(partMap, "firstName");
+            String lastName = getFormFieldValue(partMap, "lastName");
+            String birthDate = getFormFieldValue(partMap, "birthDate");
+            String nationality = getFormFieldValue(partMap, "nationality");
+
+            if (firstName == null || lastName == null || birthDate == null || nationality == null) {
+                return Mono.error(new IllegalArgumentException("One or two form fields are missing"));
+            }
+
+            DirectorDTO directorDTO = new DirectorDTO();
+            directorDTO.setFirstName(firstName);
+            directorDTO.setLastName(lastName);
+            directorDTO.setNationality(nationality);
+            directorDTO.setBirthDate(LocalDate.parse(birthDate));
+
+            String filename = RandomStringUtils.randomAlphabetic(15)+".png";
             Long id = Long.valueOf(request.pathVariable("id"));
-            Mono<DirectorDTO> directorMono = request.bodyToMono(DirectorDTO.class);
-            return directorMono.flatMap(directorDTO -> directorService.update(id,directorDTO))
-                    .flatMap(savedDirector -> ServerResponse.ok().bodyValue(savedDirector))
-                    .switchIfEmpty(ServerResponse.notFound().build());
-        });
+            return directorService.update(id,directorDTO,photo,filename)
+                    .flatMap(director -> ServerResponse.ok().bodyValue(director))
+                    .switchIfEmpty(ServerResponse.notFound().build())
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error updating director: " + e.getMessage()));
+        }));
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){
@@ -97,6 +149,14 @@ public class DirectorHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(movies))
             .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    private String getFormFieldValue(Map<String,Part> partMap,String fieldName){
+        Part part = partMap.get(fieldName);
+        if (part instanceof FormFieldPart) {
+            return ((FormFieldPart) part).value();
+        }
+        return null;
     }
 
     private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
