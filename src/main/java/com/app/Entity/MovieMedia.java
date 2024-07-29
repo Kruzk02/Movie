@@ -5,7 +5,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.time.LocalTime;
 
 @Table("movie_media")
 public class MovieMedia implements Serializable {
@@ -19,14 +19,14 @@ public class MovieMedia implements Serializable {
     @Column("episodes")
     private byte episodes;
     @Column("duration")
-    private Timestamp duration;
+    private LocalTime duration;
     @Column("quality")
     private String quality;
 
     public MovieMedia() {
     }
 
-    public MovieMedia(Long id, Long movieId, String filePath, byte episodes, Timestamp duration, String quality) {
+    public MovieMedia(Long id, Long movieId, String filePath, byte episodes, LocalTime duration, String quality) {
         this.id = id;
         this.movieId = movieId;
         this.filePath = filePath;
@@ -67,11 +67,11 @@ public class MovieMedia implements Serializable {
         this.episodes = episodes;
     }
 
-    public Timestamp getDuration() {
+    public LocalTime  getDuration() {
         return duration;
     }
 
-    public void setDuration(Timestamp duration) {
+    public void setDuration(LocalTime duration) {
         this.duration = duration;
     }
 
