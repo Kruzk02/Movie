@@ -6,8 +6,11 @@ import com.app.Entity.Director;
 import com.app.Entity.Movie;
 import com.app.Service.DirectorMovieService;
 import com.app.Service.DirectorService;
+import net.sf.jsqlparser.schema.Server;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -29,11 +32,13 @@ public class DirectorHandler {
 
     private final DirectorMovieService directorMovieService;
     private final DirectorService directorService;
+    private final ResourceLoader resourceLoader;
 
     @Autowired
-    public DirectorHandler(DirectorMovieService directorMovieService, DirectorService directorService) {
+    public DirectorHandler(DirectorMovieService directorMovieService, DirectorService directorService, ResourceLoader resourceLoader) {
         this.directorMovieService = directorMovieService;
         this.directorService = directorService;
+        this.resourceLoader = resourceLoader;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request){
@@ -44,8 +49,22 @@ public class DirectorHandler {
     public Mono<ServerResponse> findById(ServerRequest request){
         Long id = Long.valueOf(request.pathVariable("id"));
         Mono<Director> directorMono = directorService.findById(id);
-        return directorMono.flatMap(director -> ServerResponse.ok().bodyValue(director)
+        return directorMono.flatMap(director -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(director)
                 .switchIfEmpty(ServerResponse.notFound().build()));
+    }
+
+    public Mono<ServerResponse> getDirectorPhoto(ServerRequest request) {
+        return directorService.findById(Long.valueOf(request.pathVariable("id")))
+            .flatMap(director -> {
+                if (director.getPhoto() == null || director.getPhoto().isEmpty()) {
+                    return ServerResponse.notFound().build();
+                }
+                Resource resource = resourceLoader.getResource("file:directorPhoto/" +director.getPhoto());
+                return ServerResponse.ok()
+                    .contentType(MediaType.IMAGE_PNG)
+                    .bodyValue(resource);
+            })
+            .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     public Mono<ServerResponse> create(ServerRequest request){
