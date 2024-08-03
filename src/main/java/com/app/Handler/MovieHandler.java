@@ -6,7 +6,10 @@ import com.app.Expection.MovieNotFound;
 import com.app.Service.MovieService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
 import org.springframework.http.codec.multipart.Part;
@@ -25,10 +28,12 @@ import java.util.function.Function;
 public class MovieHandler {
 
     private final MovieService movieService;
+    private final ResourceLoader resourceLoader;
 
     @Autowired
-    public MovieHandler(MovieService movieService) {
+    public MovieHandler(MovieService movieService, ResourceLoader resourceLoader) {
         this.movieService = movieService;
+        this.resourceLoader = resourceLoader;
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request) {
@@ -41,6 +46,20 @@ public class MovieHandler {
         Mono<Movie> movieMono = movieService.findById(id);
         return movieMono.flatMap(movie -> ServerResponse.ok().bodyValue(movie))
                 .switchIfEmpty(ServerResponse.notFound().build()) ;
+    }
+
+    public Mono<ServerResponse> getMoviePoster(ServerRequest request) {
+        return movieService.findById(Long.valueOf(request.pathVariable("id")))
+                .flatMap(movie -> {
+                    if (movie.getPoster() == null || movie.getPoster().isEmpty()) {
+                        return ServerResponse.notFound().build();
+                    }
+                    Resource resource = resourceLoader.getResource("file:moviePoster/"+movie.getPoster());
+                    return ServerResponse.ok()
+                            .contentType(MediaType.IMAGE_PNG)
+                            .bodyValue(resource);
+                })
+                .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     public Mono<ServerResponse> save(ServerRequest request) {
