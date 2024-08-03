@@ -12,6 +12,5 @@ public interface MovieMediaService {
     Mono<MovieMedia> findByMovieIdAndEpisode(Long movieId,byte episode);
     Mono<MovieMedia> save(MovieMediaDTO movieMediaDTO, FilePart filePart, String filename);
     Mono<MovieMedia> update(Long id,MovieMediaDTO movieMediaDTO,FilePart filePart,String filename);
-    Flux<MovieMedia> updateWithMovieId(Long movieId, MovieMediaDTO movieMediaDTO, FilePart filePart, String filename);
     Mono<Void> delete(Long id);
 }

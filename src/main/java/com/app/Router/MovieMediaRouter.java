@@ -27,7 +27,6 @@ public class MovieMediaRouter {
                 .andRoute(GET("/movie_media/movies/{movieId}/{episode}"),movieMediaHandler::findByMovieIdAndEpisode)
                 .andRoute(POST("/movie_media"),movieMediaHandler::save)
                 .andRoute(PUT("/movie_media/{id}"), movieMediaHandler::update)
-                .andRoute(PUT("/movie_media/movies/{movieId}"),movieMediaHandler::updateWithMovieId)
                 .andRoute(DELETE("/movie_media/{id}"),movieMediaHandler::delete);
     }
 }

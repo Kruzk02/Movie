@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalTime;
+
 public interface MovieMediaRepository extends ReactiveCrudRepository<MovieMedia,Long> {
 
     @Query(value = "SELECT * FROM movie_media WHERE movie_id = :movieId")
@@ -22,11 +24,15 @@ public interface MovieMediaRepository extends ReactiveCrudRepository<MovieMedia,
 
     @Modifying
     @Transactional
-    @Query("UPDATE movie_media SET "+
-            "file_path = :#{#movieMedia.filePath}," +
-            "episodes =:#{#movieMedia.episodes}," +
-            "duration =:#{#movieMedia.duration}," +
-            "quality =:#{#movieMedia.quality}," +
-            "WHERE movie_id =: movieId")
-    Mono<MovieMedia> updateWithMovieId(@Param("movieId") Long movieId,@Param("movieMedia") MovieMedia movieMedia);
+    @Query("UPDATE MovieMedia m SET m.filePath = :filePath, " +
+            "m.episodes = :episodes, " +
+            "m.duration = :duration, " +
+            "m.quality = :quality " +
+            "WHERE m.movieId = :movieId")
+    Mono<Void> updateWithMovieId(@Param("movieId") Long movieId,
+                                 @Param("filePath") String filePath,
+                                 @Param("episodes") byte episodes,
+                                 @Param("duration") LocalTime duration,
+                                 @Param("quality") String quality);
+
 }
