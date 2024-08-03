@@ -57,6 +57,7 @@ public class Router {
         return RouterFunctions
                 .route(GET("/actors"),actorHandler::findAll)
                 .andRoute(GET("/actors/{id}"),actorHandler::findById)
+                .andRoute(GET("/actors/{id}/photo"),actorHandler::getActorPhoto)
                 .andRoute(POST("/actors/movies"),actorHandler::saveActorMovie)
                 .andRoute(PUT("/actors/movies"),actorHandler::updateActorMovie)
                 .andRoute(GET("/actors/{id}/movies"),actorHandler::findMovieByActorId)
@@ -75,6 +76,7 @@ public class Router {
         return RouterFunctions
                 .route(GET("/movies"),movieHandler::findAll)
                 .andRoute(GET("/movies/{id}"),movieHandler::findById)
+                .andRoute(GET("/movies/{id}/poster"),movieHandler::getMoviePoster)
                 .andRoute(POST("/movies"),movieHandler::save)
                 .andRoute(PUT("/movies/{id}"),movieHandler::update)
                 .andRoute(DELETE("/movies/{id}"),movieHandler::delete);
