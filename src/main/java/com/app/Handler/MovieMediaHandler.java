@@ -120,40 +120,6 @@ public class MovieMediaHandler {
         }));
     }
 
-    public Mono<ServerResponse> updateWithMovieId(ServerRequest request){
-        return checkRoleAndProcess(request,role -> request.multipartData().flatMap(parts -> {
-            Map<String, Part> partMap = parts.toSingleValueMap();
-            partMap.forEach((key,value) -> System.out.println("Part: " + key + " -> " + value));
-
-
-            FilePart filePart = (FilePart) partMap.get("video");
-            if (filePart == null) throw new IllegalArgumentException("Video file is missing");
-
-            Long movieId = Long.valueOf(Objects.requireNonNull(getFormFieldValue(partMap, "movieId")));
-            byte episodes = Byte.parseByte(Objects.requireNonNull(getFormFieldValue(partMap, "episode")));
-            LocalTime duration = LocalTime.parse(Objects.requireNonNull(getFormFieldValue(partMap, "duration")));
-            String quality = getFormFieldValue(partMap,"quality");
-
-            if (movieId == null || episodes == 0 || duration == null || quality == null) {
-                throw new IllegalArgumentException("One or two field is missing");
-            }
-
-            Long movieIdPathVar = Long.valueOf(request.pathVariable("movieId"));
-            String filename = RandomStringUtils.randomAlphabetic(20) + ".mp4";
-
-            MovieMediaDTO movieMediaDTO = new MovieMediaDTO();
-            movieMediaDTO.setMovieId(movieId);
-            movieMediaDTO.setEpisodes(episodes);
-            movieMediaDTO.setDuration(duration);
-            movieMediaDTO.setQuality(quality);
-
-            return movieMediaService.updateWithMovieId(movieIdPathVar,movieMediaDTO,filePart,filename).collectList()
-                    .flatMap(movieMedia -> ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(movieMedia))
-                    .switchIfEmpty(ServerResponse.notFound().build())
-                    .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie media: " + e.getMessage()));
-        }));
-    }
-
     public Mono<ServerResponse> delete(ServerRequest request){
         return checkRoleAndProcess(request,role -> {
             Long id = Long.valueOf(request.pathVariable("id"));

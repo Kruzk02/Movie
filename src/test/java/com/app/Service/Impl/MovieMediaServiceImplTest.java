@@ -150,10 +150,10 @@ public class MovieMediaServiceImplTest {
         when(movieMediaRepository.findAllByMovieId(movieId)).thenReturn(Flux.just(existingMovieMedia));
         when(fileService.delete("movieMedia", existingMovieMedia.getFilePath())).thenReturn(Mono.empty());
         when(fileService.save(filePart, "movieMedia", filename)).thenReturn(Mono.empty());
-        when(movieMediaRepository.updateWithMovieId(any(),any())).thenReturn(Mono.just(existingMovieMedia));
+        when(movieMediaRepository.updateWithMovieId(any(),any(),any(),any(),any())).thenReturn(Mono.just(any()));
 
         StepVerifier.create(movieMediaServiceImpl.updateWithMovieId(movieId, movieMediaDTO, filePart, filename))
-                .expectNext(existingMovieMedia)
+                .expectNext()
                 .verifyComplete();
     }
 

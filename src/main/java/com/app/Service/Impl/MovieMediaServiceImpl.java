@@ -109,26 +109,6 @@ public class MovieMediaServiceImpl implements MovieMediaService {
     }
 
     @Override
-    public Flux<MovieMedia> updateWithMovieId(Long movieId, MovieMediaDTO movieMediaDTO, FilePart filePart, String filename) {
-        return movieMediaRepository.findAllByMovieId(movieId)
-            .flatMap(existingMovieMedia ->
-                fileService.delete("movieMedia",existingMovieMedia.getFilePath())
-                    .then(fileService.save(filePart,"movieMedia",filename)
-                        .then(Mono.fromCallable(() -> {
-                            existingMovieMedia.setFilePath(filename);
-                            existingMovieMedia.setMovieId(movieMediaDTO.getMovieId());
-                            existingMovieMedia.setDuration(movieMediaDTO.getDuration());
-                            existingMovieMedia.setEpisodes(movieMediaDTO.getEpisodes());
-                            existingMovieMedia.setQuality(movieMediaDTO.getQuality());
-
-                            return existingMovieMedia;
-                        }))
-                        .flatMap(movieMedia -> movieMediaRepository.updateWithMovieId(movieId,movieMedia))
-                        )
-            );
-    }
-
-    @Override
     public Mono<Void> delete(Long id) {
         return movieMediaRepository.findById(id)
             .flatMap(movieMedia -> {
