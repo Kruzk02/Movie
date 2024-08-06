@@ -32,19 +32,6 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Mono<Void> get(String filename, String folder) {
-        Path filePath = Paths.get(folder, filename);
-        File file = filePath.toFile();
-        if (file.exists()) {
-            Resource resource = new FileSystemResource(file);
-            log.info(file.toString());
-            return Mono.just(resource).then();
-        } else {
-            return Mono.error(new FileNotFoundException("File not found: " + filename));
-        }
-    }
-
-    @Override
     public Mono<Void> save(FilePart filePart, String folder, String filename) {
         File directory = ensureFolderExist(folder);
         File file = new File(directory, filename);
