@@ -3,9 +3,12 @@ package com.app.Handler;
 import com.app.DTO.MovieMediaDTO;
 import com.app.Expection.MovieMediaNotFound;
 import com.app.Service.MovieMediaService;
-import net.sf.jsqlparser.schema.Server;
+import com.app.Service.VideoStreamService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.codec.multipart.FormFieldPart;
@@ -15,8 +18,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.sql.Timestamp;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -25,10 +28,12 @@ import java.util.function.Function;
 public class MovieMediaHandler {
 
     private final MovieMediaService movieMediaService;
+    private final VideoStreamService videoStreamService;
 
     @Autowired
-    public MovieMediaHandler(MovieMediaService movieMediaService) {
+    public MovieMediaHandler(MovieMediaService movieMediaService, VideoStreamService videoStreamService) {
         this.movieMediaService = movieMediaService;
+        this.videoStreamService = videoStreamService;
     }
 
     public Mono<ServerResponse> findAllByMovieId(ServerRequest request) {
@@ -55,6 +60,46 @@ public class MovieMediaHandler {
                 .switchIfEmpty(Mono.error(new MovieMediaNotFound("Movie media not found with a movie id: " + movieId + " or episode: " + episode)));
     }
 
+    public Mono<ServerResponse> streamVideo(ServerRequest request) {
+        String filename = request.pathVariable("filename");
+        String range = request.headers().asHttpHeaders().getFirst(HttpHeaders.RANGE);
+        long start = 0;
+        long end = 1024 * 1024;
+
+        final long fileSize = videoStreamService.getFileSize(filename);
+        if (range == null) {
+            return ServerResponse.status(HttpStatus.PARTIAL_CONTENT)
+                    .header(HttpHeaders.CONTENT_TYPE,"video/mp4")
+                    .header(HttpHeaders.ACCEPT_RANGES,"bytes")
+                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(end))
+                    .header(HttpHeaders.CONTENT_RANGE, "bytes" + " " + start + "-" + end + "/" + fileSize)
+                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileSize))
+                    .bodyValue(videoStreamService.readByteRange(filename,start,end));
+        }else {
+            String[] ranges = range.split("-");
+            start = Long.parseLong(ranges[0].substring(6));
+            if (ranges.length > 1) {
+                end = Long.parseLong(ranges[1]);
+            }else {
+                end = start + 1024 * 1024;
+            }
+
+            end = Math.min(end,fileSize - 1);
+            final byte[] data = videoStreamService.readByteRange(filename,start,end);
+            final String contentLength = String.valueOf((end - start) + 1);
+            HttpStatus httpStatus = HttpStatus.PARTIAL_CONTENT;
+            if (end >= fileSize) {
+                httpStatus = HttpStatus.OK;
+            }
+            return ServerResponse.status(httpStatus)
+                    .header(HttpHeaders.CONTENT_TYPE,"video/mp4")
+                    .header(HttpHeaders.ACCEPT_RANGES,"bytes")
+                    .header(HttpHeaders.CONTENT_LENGTH,contentLength)
+                    .header(HttpHeaders.CONTENT_RANGE, "bytes" + " " + start + "-" + end + "/" + fileSize)
+                    .bodyValue(data).log(Arrays.toString(data));
+        }
+    }
+
     public Mono<ServerResponse> save(ServerRequest request) {
         return checkRoleAndProcess(request,role -> request.multipartData().flatMap(parts -> {
             Map<String, Part> partMap = parts.toSingleValueMap();
@@ -63,7 +108,6 @@ public class MovieMediaHandler {
             FilePart filePart = (FilePart) partMap.get("video");
             if (filePart == null) throw new IllegalArgumentException("Video file is missing");
 
-            String filePath = filePart.filename();
             Long movieId = Long.valueOf(Objects.requireNonNull(getFormFieldValue(partMap, "movieId")));
             byte episodes = Byte.parseByte(Objects.requireNonNull(getFormFieldValue(partMap, "episode")));
             LocalTime duration = LocalTime.parse(Objects.requireNonNull(getFormFieldValue(partMap, "duration")));
