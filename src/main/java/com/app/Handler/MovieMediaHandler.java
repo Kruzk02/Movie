@@ -62,6 +62,12 @@ public class MovieMediaHandler {
 
     public Mono<ServerResponse> streamVideo(ServerRequest request) {
         String filename = request.pathVariable("filename");
+        int lastIndexOfDot = filename.lastIndexOf('.') + 1;
+        String extension = "";
+        if (lastIndexOfDot != 1) {
+            extension = filename.substring(lastIndexOfDot);
+        }
+
         String range = request.headers().asHttpHeaders().getFirst(HttpHeaders.RANGE);
         long start = 0;
         long end = 1024 * 1024;
@@ -69,7 +75,7 @@ public class MovieMediaHandler {
         final long fileSize = videoStreamService.getFileSize(filename);
         if (range == null) {
             return ServerResponse.status(HttpStatus.PARTIAL_CONTENT)
-                    .header(HttpHeaders.CONTENT_TYPE,"video/mp4")
+                    .header(HttpHeaders.CONTENT_TYPE,"video/"+extension)
                     .header(HttpHeaders.ACCEPT_RANGES,"bytes")
                     .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(end))
                     .header(HttpHeaders.CONTENT_RANGE, "bytes" + " " + start + "-" + end + "/" + fileSize)
@@ -92,7 +98,7 @@ public class MovieMediaHandler {
                 httpStatus = HttpStatus.OK;
             }
             return ServerResponse.status(httpStatus)
-                    .header(HttpHeaders.CONTENT_TYPE,"video/mp4")
+                    .header(HttpHeaders.CONTENT_TYPE,"video/"+extension)
                     .header(HttpHeaders.ACCEPT_RANGES,"bytes")
                     .header(HttpHeaders.CONTENT_LENGTH,contentLength)
                     .header(HttpHeaders.CONTENT_RANGE, "bytes" + " " + start + "-" + end + "/" + fileSize)
@@ -117,7 +123,14 @@ public class MovieMediaHandler {
                 throw new IllegalArgumentException("One or two field is missing");
             }
 
-            String filename = RandomStringUtils.randomAlphabetic(20) + ".mp4";
+            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = filePart.filename().substring(lastIndexOfDot);
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(20);
+            filename += extension.replaceAll("[(){}]","");
 
             MovieMediaDTO movieMediaDTO = new MovieMediaDTO();
             movieMediaDTO.setMovieId(movieId);
@@ -148,8 +161,16 @@ public class MovieMediaHandler {
                 throw new IllegalArgumentException("One or two field is missing");
             }
 
+            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = filePart.filename().substring(lastIndexOfDot);
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(20);
+            filename += extension.replaceAll("[(){}]","");
+
             Long id = Long.valueOf(request.pathVariable("id"));
-            String filename = RandomStringUtils.randomAlphabetic(20) + ".mp4";
 
             MovieMediaDTO movieMediaDTO = new MovieMediaDTO();
             movieMediaDTO.setMovieId(movieId);
