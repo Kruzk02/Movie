@@ -10,6 +10,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -61,11 +62,15 @@ public class ActorHandler {
                     }
 
                     Resource resource = resourceLoader.getResource("file:actorPhoto/"+actor.getPhoto());
+                    int lastIndexOfDot = resource.getFilename().lastIndexOf('.') + 1;
+                    String extension = "";
+                    if (lastIndexOfDot != 1) {
+                        extension = resource.getFilename().substring(lastIndexOfDot);
+                    }
 
                     return ServerResponse.ok()
-                            .contentType(MediaType.IMAGE_PNG)
+                            .header(HttpHeaders.CONTENT_TYPE,"image/"+extension)
                             .bodyValue(resource);
-
                 })
                 .switchIfEmpty(ServerResponse.notFound().build());
     }
@@ -95,7 +100,15 @@ public class ActorHandler {
             actorDTO.setBirthDate(LocalDate.parse(birthDate));
             actorDTO.setNationality(nationality);
 
-            String filename = RandomStringUtils.randomAlphabetic(15) + ".png";
+            int lastIndexOfDot = photo.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = photo.filename().substring(lastIndexOfDot);
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(15);
+            filename += extension.replaceAll("[(){}]","");
+
             return actorService.save(actorDTO,photo,filename)
                     .flatMap(actor -> ServerResponse.ok().bodyValue(actor))
                     .switchIfEmpty(ServerResponse.notFound().build())
@@ -129,8 +142,15 @@ public class ActorHandler {
             actorDTO.setBirthDate(LocalDate.parse(birthDate));
             actorDTO.setNationality(nationality);
 
+            int lastIndexOfDot = photo.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = photo.filename().substring(lastIndexOfDot);
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(15);
+            filename += extension.replaceAll("[(){}]","");
             Long id = Long.valueOf(request.pathVariable("id"));
-            String filename = RandomStringUtils.randomAlphabetic(15) + ".png";
 
             return actorService.update(id,actorDTO,photo,filename)
                     .flatMap(actor -> ServerResponse.ok().bodyValue(actor))

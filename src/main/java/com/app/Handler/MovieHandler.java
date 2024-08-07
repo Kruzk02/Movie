@@ -8,6 +8,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -55,8 +56,13 @@ public class MovieHandler {
                         return ServerResponse.notFound().build();
                     }
                     Resource resource = resourceLoader.getResource("file:moviePoster/"+movie.getPoster());
+                    int lastIndexOfDot = Objects.requireNonNull(resource.getFilename()).lastIndexOf('.') + 1;
+                    String extension = "";
+                    if (lastIndexOfDot != 1) {
+                        extension = resource.getFilename().substring(lastIndexOfDot);
+                    }
                     return ServerResponse.ok()
-                            .contentType(MediaType.IMAGE_PNG)
+                            .header(HttpHeaders.CONTENT_TYPE,"image/"+extension)
                             .bodyValue(resource);
                 })
                 .switchIfEmpty(ServerResponse.notFound().build());
@@ -81,7 +87,13 @@ public class MovieHandler {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
-            String filename = RandomStringUtils.randomAlphabetic(15) + ".png";
+            int lastIndexOfDot = poster.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = poster.filename().substring(lastIndexOfDot);
+            }
+            String filename = RandomStringUtils.randomAlphabetic(15);
+            filename = filename + extension.replaceAll("[(){}]", "");
 
             MovieDTO movieDTO = new MovieDTO();
             movieDTO.setTitle(title);
@@ -114,7 +126,14 @@ public class MovieHandler {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
-            String filename = RandomStringUtils.randomAlphabetic(15)+".png";
+            int lastIndexOfDot = poster.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = poster.filename().substring(lastIndexOfDot);
+            }
+            String filename = RandomStringUtils.randomAlphabetic(15);
+            filename = filename + extension.replaceAll("[(){}]", "");
+
             Long id = Long.valueOf(request.pathVariable("id"));
 
             MovieDTO movieDTO = new MovieDTO();

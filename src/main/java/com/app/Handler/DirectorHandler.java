@@ -11,6 +11,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
@@ -60,8 +61,13 @@ public class DirectorHandler {
                     return ServerResponse.notFound().build();
                 }
                 Resource resource = resourceLoader.getResource("file:directorPhoto/" +director.getPhoto());
+                int lastIndexOfDot = resource.getFilename().lastIndexOf('.') + 1;
+                String extension = "";
+                if (lastIndexOfDot != 1) {
+                    extension = resource.getFilename().substring(lastIndexOfDot);
+                }
                 return ServerResponse.ok()
-                    .contentType(MediaType.IMAGE_PNG)
+                    .header(HttpHeaders.CONTENT_TYPE,"image/"+extension)
                     .bodyValue(resource);
             })
             .switchIfEmpty(ServerResponse.notFound().build());
@@ -91,7 +97,15 @@ public class DirectorHandler {
             directorDTO.setNationality(nationality);
             directorDTO.setBirthDate(LocalDate.parse(birthDate));
 
-            String filename = RandomStringUtils.randomAlphabetic(15)+".png";
+            int lastIndexOfDot = photo.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = photo.filename().substring(lastIndexOfDot);
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(15);
+            filename += extension.replaceAll("[(){}]", "");
+
             return directorService.save(directorDTO,photo,filename)
                     .flatMap(director -> ServerResponse.ok().bodyValue(director))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + e.getMessage()));
@@ -122,7 +136,15 @@ public class DirectorHandler {
             directorDTO.setNationality(nationality);
             directorDTO.setBirthDate(LocalDate.parse(birthDate));
 
-            String filename = RandomStringUtils.randomAlphabetic(15)+".png";
+            int lastIndexOfDot = photo.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = photo.filename().substring(lastIndexOfDot);
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(15);
+            filename += extension.replaceAll("[(){}]", "");
+
             Long id = Long.valueOf(request.pathVariable("id"));
             return directorService.update(id,directorDTO,photo,filename)
                     .flatMap(director -> ServerResponse.ok().bodyValue(director))
