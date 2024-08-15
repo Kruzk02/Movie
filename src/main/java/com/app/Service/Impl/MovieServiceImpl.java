@@ -7,7 +7,7 @@ import com.app.Mapper.MovieMapper;
 import com.app.Repository.*;
 import com.app.Service.FileService;
 import com.app.Service.MovieService;
-import com.app.messaging.MessagingService;
+import com.app.messaging.producer.MovieProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.codec.multipart.FilePart;
@@ -22,14 +22,14 @@ public class MovieServiceImpl implements MovieService {
 
     private final MovieRepository movieRepository;
     private final FileService fileService;
-    private final MessagingService<Movie> movieMessagingService;
+    private final MovieProducer movieProducer;
     private final ReactiveRedisTemplate<String,Movie> redisTemplate;
 
     @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository, FileService fileService, MessagingService<Movie> movieMessagingService, ReactiveRedisTemplate<String, Movie> redisTemplate) {
+    public MovieServiceImpl(MovieRepository movieRepository, FileService fileService, MovieProducer movieProducer, ReactiveRedisTemplate<String, Movie> redisTemplate) {
         this.movieRepository = movieRepository;
         this.fileService = fileService;
-        this.movieMessagingService = movieMessagingService;
+        this.movieProducer = movieProducer;
         this.redisTemplate = redisTemplate;
     }
 
@@ -74,7 +74,7 @@ public class MovieServiceImpl implements MovieService {
                 })
                 .flatMap(movie ->
                     movieRepository.save(movie)
-                    .doOnNext(movieMessagingService::sendMessage)
+                    .doOnNext(movieProducer::send)
                     .log("Save a new movie: " + movie))
             );
     }
@@ -93,7 +93,7 @@ public class MovieServiceImpl implements MovieService {
                             existingMovie.setSeasons(movieDTO.getSeasons());
                             existingMovie.setPoster(filename);
 
-                            movieMessagingService.sendMessage(existingMovie);
+                            movieProducer.send(existingMovie);
                             return existingMovie;
                         }))
                         .flatMap(movieRepository::save)
