@@ -6,7 +6,7 @@ import com.app.Entity.DirectorMoviePK;
 import com.app.Entity.Movie;
 import com.app.Repository.DirectorMovieRepository;
 import com.app.Service.DirectorMovieService;
-import com.app.messaging.MessagingService;
+import com.app.messaging.consumer.DirectorMovieConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,17 +19,17 @@ import java.util.stream.Collectors;
 public class DirectorMovieServiceImpl implements DirectorMovieService {
 
     private final DirectorMovieRepository directorMovieRepository;
-    private final MessagingService<Movie> movieMessagingService;
+    private final DirectorMovieConsumer directorMovieConsumer;
 
     @Autowired
-    public DirectorMovieServiceImpl(DirectorMovieRepository directorMovieRepository, MessagingService<Movie> movieMessagingService) {
+    public DirectorMovieServiceImpl(DirectorMovieRepository directorMovieRepository, DirectorMovieConsumer directorMovieConsumer) {
         this.directorMovieRepository = directorMovieRepository;
-        this.movieMessagingService = movieMessagingService;
+        this.directorMovieConsumer = directorMovieConsumer;
     }
 
     @Override
     public Mono<Void> saveDirectorMovie(DirectorMovieDTO directorMovieDTO) {
-        return movieMessagingService.receiveMessage()
+        return Mono.just(directorMovieConsumer.receive())
             .flatMapMany(movie -> {
                 Set<DirectorMoviePK> directorMovies = directorMovieDTO.getDirectorId().stream()
                     .map(directorId -> new DirectorMoviePK(directorId,movie.getId()))
@@ -42,7 +42,7 @@ public class DirectorMovieServiceImpl implements DirectorMovieService {
 
     @Override
     public Mono<Void> updateDirectorMovie(DirectorMovieDTO directorMovieDTO) {
-        return movieMessagingService.receiveMessage()
+        return Mono.just(directorMovieConsumer.receive())
             .flatMapMany(movie -> {
                 Mono<Void> deleteExisting = directorMovieRepository.deleteByMovieId(movie.getId());
 
