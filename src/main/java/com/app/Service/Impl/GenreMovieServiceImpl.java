@@ -6,7 +6,7 @@ import com.app.Entity.GenreMoviePK;
 import com.app.Entity.Movie;
 import com.app.Repository.GenreMovieRepository;
 import com.app.Service.GenreMovieService;
-import com.app.messaging.MessagingService;
+import com.app.messaging.consumer.GenreMovieConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,12 +19,12 @@ import java.util.stream.Collectors;
 public class GenreMovieServiceImpl implements GenreMovieService {
 
     private final GenreMovieRepository genreMovieRepository;
-    private final MessagingService<Movie> movieMessagingService;
+    private final GenreMovieConsumer genreMovieConsumer;
 
     @Autowired
-    public GenreMovieServiceImpl(GenreMovieRepository genreMovieRepository, MessagingService<Movie> movieMessagingService) {
+    public GenreMovieServiceImpl(GenreMovieRepository genreMovieRepository, GenreMovieConsumer genreMovieConsumer) {
         this.genreMovieRepository = genreMovieRepository;
-        this.movieMessagingService = movieMessagingService;
+        this.genreMovieConsumer = genreMovieConsumer;
     }
 
     /**
@@ -47,7 +47,7 @@ public class GenreMovieServiceImpl implements GenreMovieService {
      */
     @Override
     public Mono<Void> saveGenreMovie(GenreDTO genreDTO) {
-        return movieMessagingService.receiveMessage()
+        return Mono.just(genreMovieConsumer.receive())
             .flatMapMany(movie -> {
                 Set<GenreMoviePK> genreMovies = genreDTO.getGenreId().stream()
                     .map(genreId -> new GenreMoviePK(genreId,movie.getId()))
@@ -60,7 +60,7 @@ public class GenreMovieServiceImpl implements GenreMovieService {
 
     @Override
     public Mono<Void> updateGenreMovie(GenreDTO genreDTO) {
-        return movieMessagingService.receiveMessage()
+        return Mono.just(genreMovieConsumer.receive())
             .flatMapMany(movie -> {
                 Mono<Void> deleteExisting = genreMovieRepository.deleteByMovieId(movie.getId());
 
