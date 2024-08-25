@@ -8,6 +8,8 @@ import com.app.Mapper.ActorMapper;
 import com.app.Repository.ActorRepository;
 import com.app.Service.ActorService;
 import com.app.Service.FileService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.codec.multipart.FilePart;
@@ -15,20 +17,24 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
+
+import static com.app.constants.AppConstants.ACTOR_PHOTO;
 
 @Service
 public class ActorServiceImpl implements ActorService {
 
+    private static final Logger log = LogManager.getLogger(ActorServiceImpl.class);
     private final ActorRepository actorRepository;
     private final ReactiveRedisTemplate<String,Actor> redisTemplate;
-    private final FileService fileService;
 
     @Autowired
-    public ActorServiceImpl(ActorRepository actorRepository, ReactiveRedisTemplate<String, Actor> redisTemplate, FileService fileService) {
+    public ActorServiceImpl(ActorRepository actorRepository, ReactiveRedisTemplate<String, Actor> redisTemplate) {
         this.actorRepository = actorRepository;
         this.redisTemplate = redisTemplate;
-        this.fileService = fileService;
     }
 
     @Override
@@ -59,35 +65,39 @@ public class ActorServiceImpl implements ActorService {
     }
 
     @Override
-    public Mono<Actor> save(ActorDTO actorDTO, FilePart filePart,String filename) {
-        return fileService.save(filePart,"actorPhoto",filename)
-            .then(Mono.fromCallable(() -> {
-                Actor actor = ActorMapper.INSTANCE.mapActorDtoToActor(actorDTO);
-                actor.setPhoto(filename);
-                return actor;
-            }))
-            .flatMap(actorRepository::save)
+    public Mono<Actor> save(ActorDTO actorDTO) {
+        Actor actor = ActorMapper.INSTANCE.mapActorDtoToActor(actorDTO);
+        return actorRepository.save(actor)
+                .flatMap(savedActor -> redisTemplate
+                        .opsForValue()
+                        .set("actor:" + savedActor.getId(),savedActor,Duration.ofHours(24))
+                        .thenReturn(savedActor))
             .log("Saved a new Actor: " + actorDTO.getFirstName() + " "+ actorDTO.getLastName());
     }
 
     @Override
-    public Mono<Actor> update(Long id, ActorDTO actorDTO, FilePart filePart,String filename) {
+    public Mono<Actor> update(Long id, ActorDTO actorDTO) {
         return actorRepository.findById(id)
             .switchIfEmpty(Mono.error(new ActorNotFound("Actor Not Found")))
             .flatMap(existingActor ->{
+                Path path = Paths.get(ACTOR_PHOTO + existingActor.getPhoto());
+                File file = path.toFile();
+
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                }
+
                 existingActor.setFirstName(actorDTO.getFirstName());
                 existingActor.setLastName(actorDTO.getLastName());
                 existingActor.setBirthDate(actorDTO.getBirthDate());
                 existingActor.setNationality(Enum.valueOf(Nationality.class,actorDTO.getNationality()));
+                existingActor.setPhoto(actorDTO.getPhoto());
 
-                return fileService.delete("actorPhoto",existingActor.getPhoto())
-                    .then(fileService.save(filePart,"actorPhoto",filename)
-                        .then(Mono.fromCallable(() -> {
-                            existingActor.setPhoto(filename);
-                            return existingActor;
-                        }))
-                        .flatMap(actorRepository::save)
-                    );
+                return actorRepository.save(existingActor)
+                    .flatMap(updatedActor -> redisTemplate
+                        .opsForValue()
+                        .set("actor:" + updatedActor.getId(),updatedActor,Duration.ofHours(24))
+                        .thenReturn(updatedActor));
             })
             .log("Update a Actor with a id: "+id);
     }
@@ -97,9 +107,15 @@ public class ActorServiceImpl implements ActorService {
         return actorRepository.findById(id)
             .switchIfEmpty(Mono.error(new ActorNotFound("Actor not found with id: "+ id)))
             .flatMap(actor -> {
-                fileService.delete("actorPhoto",actor.getPhoto());
-                return actorRepository.delete(actor);
+                Path path = Paths.get(ACTOR_PHOTO + actor.getPhoto());
+                File file = path.toFile();
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                }
+
+                return actorRepository.delete(actor)
+                        .then(redisTemplate.opsForValue().delete("actor:" + actor.getId()));
             })
-            .log("Delete a Actor with a id: "+id);
+            .log("Delete a Actor with a id: "+id).then();
     }
 }

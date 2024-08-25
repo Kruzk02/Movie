@@ -23,10 +23,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+
+import static com.app.constants.AppConstants.ACTOR_PHOTO;
 
 @Component
 public class ActorHandler {
@@ -44,13 +48,13 @@ public class ActorHandler {
 
     public Mono<ServerResponse> findAll(ServerRequest request){
         Flux<Actor> actors = actorService.findAll();
-        return ServerResponse.ok().body(actors,Actor.class);
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(actors,Actor.class);
     }
 
     public Mono<ServerResponse> findById(ServerRequest request){
         Long id = Long.valueOf(request.pathVariable("id"));
         Mono<Actor> actorMono = actorService.findById(id);
-        return actorMono.flatMap(actor -> ServerResponse.ok().bodyValue(actor)
+        return actorMono.flatMap(actor -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)
             .switchIfEmpty(ServerResponse.notFound().build()));
     }
 
@@ -80,8 +84,8 @@ public class ActorHandler {
             Map<String, Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
 
-            FilePart photo = (FilePart) partMap.get("photo");
-            if (photo == null) {
+            FilePart filePart = (FilePart) partMap.get("photo");
+            if (filePart == null) {
                 return Mono.error(new IllegalArgumentException("Photo file is missing"));
             }
 
@@ -94,24 +98,26 @@ public class ActorHandler {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
-            ActorDTO actorDTO = new ActorDTO();
-            actorDTO.setFirstName(firstName);
-            actorDTO.setLastName(lastName);
-            actorDTO.setBirthDate(LocalDate.parse(birthDate));
-            actorDTO.setNationality(nationality);
-
-            int lastIndexOfDot = photo.filename().lastIndexOf('.');
+            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
             String extension = "";
             if (lastIndexOfDot != 1) {
-                extension = photo.filename().substring(lastIndexOfDot);
+                extension = filePart.filename().substring(lastIndexOfDot);
             }
 
             String filename = RandomStringUtils.randomAlphabetic(15);
             filename += extension.replaceAll("[(){}]","");
 
-            return actorService.save(actorDTO,photo,filename)
-                    .flatMap(actor -> ServerResponse.ok().bodyValue(actor))
-                    .switchIfEmpty(ServerResponse.notFound().build())
+            ActorDTO actorDTO = new ActorDTO();
+            actorDTO.setFirstName(firstName);
+            actorDTO.setLastName(lastName);
+            actorDTO.setBirthDate(LocalDate.parse(birthDate));
+            actorDTO.setNationality(nationality);
+            actorDTO.setPhoto(filename);
+
+            Path path = Paths.get(ACTOR_PHOTO + filename);
+
+            return actorService.save(actorDTO)
+                    .flatMap(actor -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)))
                     .onErrorResume(e -> ServerResponse.ok().bodyValue("Error saving actor: " + e.getMessage()));
         }));
     }
@@ -122,8 +128,8 @@ public class ActorHandler {
 
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
 
-            FilePart photo = (FilePart) partMap.get("photo");
-            if (photo == null) {
+            FilePart filePart = (FilePart) partMap.get("photo");
+            if (filePart == null) {
                 return Mono.error(new IllegalArgumentException("Photo file is missing"));
             }
 
@@ -136,24 +142,26 @@ public class ActorHandler {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
+            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = filePart.filename().substring(lastIndexOfDot);
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(15);
+            filename += extension.replaceAll("[(){}]","");
+
             ActorDTO actorDTO = new ActorDTO();
             actorDTO.setFirstName(firstName);
             actorDTO.setLastName(lastName);
             actorDTO.setBirthDate(LocalDate.parse(birthDate));
             actorDTO.setNationality(nationality);
+            actorDTO.setPhoto(filename);
 
-            int lastIndexOfDot = photo.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = photo.filename().substring(lastIndexOfDot);
-            }
-
-            String filename = RandomStringUtils.randomAlphabetic(15);
-            filename += extension.replaceAll("[(){}]","");
             Long id = Long.valueOf(request.pathVariable("id"));
-
-            return actorService.update(id,actorDTO,photo,filename)
-                    .flatMap(actor -> ServerResponse.ok().bodyValue(actor))
+            Path path = Paths.get(ACTOR_PHOTO+filename);
+            return actorService.update(id,actorDTO)
+                    .flatMap(actor -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)))
                     .switchIfEmpty(ServerResponse.notFound().build())
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + e.getMessage()));
         }));
@@ -163,7 +171,7 @@ public class ActorHandler {
         return checkRoleAndProcess(request,role -> {
             Long id = Long.valueOf(request.pathVariable("id"));
             return actorService.delete(id)
-                    .then(ServerResponse.ok().build())
+                    .then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).build())
                     .switchIfEmpty(ServerResponse.notFound().build());
         });
     }
