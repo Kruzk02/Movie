@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 public interface DirectorService {
     Flux<Director> findAll();
     Mono<Director> findById(Long id);
-    Mono<Director> save(DirectorDTO directorDTO, FilePart photo,String filename);
-    Mono<Director> update(Long id,DirectorDTO directorDTO,FilePart photo,String filename);
+    Mono<Director> save(DirectorDTO directorDTO);
+    Mono<Director> update(Long id,DirectorDTO directorDTO);
     Mono<Void> delete(Long id);
 }

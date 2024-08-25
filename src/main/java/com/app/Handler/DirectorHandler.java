@@ -23,10 +23,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+
+import static com.app.constants.AppConstants.DIRECTOR_PHOTO;
 
 @Component
 public class DirectorHandler {
@@ -77,8 +81,8 @@ public class DirectorHandler {
         return checkRoleAndProcess(request,role -> request.multipartData().flatMap(parts -> {
             Map<String, Part> partMap = parts.toSingleValueMap();
 
-            FilePart photo = (FilePart) partMap.get("photo");
-            if (photo == null) {
+            FilePart filePart = (FilePart) partMap.get("photo");
+            if (filePart == null) {
                 return Mono.error(new IllegalArgumentException("Photo file is missing"));
             }
 
@@ -90,24 +94,27 @@ public class DirectorHandler {
             if (firstName == null || lastName == null || birthDate == null || nationality == null) {
                 return Mono.error(new IllegalArgumentException("One or two form fields are missing"));
             }
+            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+            String extension = "";
+            if (lastIndexOfDot != 1) {
+                extension = filePart.filename().substring(lastIndexOfDot);
+            }
+
+            String filename = RandomStringUtils.randomAlphabetic(15);
+            filename += extension.replaceAll("[(){}]", "");
+
 
             DirectorDTO directorDTO = new DirectorDTO();
             directorDTO.setFirstName(firstName);
             directorDTO.setLastName(lastName);
             directorDTO.setNationality(nationality);
             directorDTO.setBirthDate(LocalDate.parse(birthDate));
+            directorDTO.setPhoto(filename);
 
-            int lastIndexOfDot = photo.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = photo.filename().substring(lastIndexOfDot);
-            }
-
-            String filename = RandomStringUtils.randomAlphabetic(15);
-            filename += extension.replaceAll("[(){}]", "");
-
-            return directorService.save(directorDTO,photo,filename)
-                    .flatMap(director -> ServerResponse.ok().bodyValue(director))
+            Path path = Paths.get(DIRECTOR_PHOTO + filename);
+            return directorService.save(directorDTO)
+                    .flatMap(director -> filePart.transferTo(path)
+                            .then(ServerResponse.ok().bodyValue(director)))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + e.getMessage()));
         }));
     }
@@ -116,8 +123,8 @@ public class DirectorHandler {
         return checkRoleAndProcess(request,role -> request.multipartData().flatMap(parts -> {
             Map<String,Part> partMap = parts.toSingleValueMap();
 
-            FilePart photo = (FilePart) partMap.get("photo");
-            if (photo == null) {
+            FilePart filePart = (FilePart) partMap.get("photo");
+            if (filePart == null) {
                 return Mono.error(new IllegalArgumentException("Photo file is missing"));
             }
 
@@ -130,24 +137,29 @@ public class DirectorHandler {
                 return Mono.error(new IllegalArgumentException("One or two form fields are missing"));
             }
 
-            DirectorDTO directorDTO = new DirectorDTO();
-            directorDTO.setFirstName(firstName);
-            directorDTO.setLastName(lastName);
-            directorDTO.setNationality(nationality);
-            directorDTO.setBirthDate(LocalDate.parse(birthDate));
-
-            int lastIndexOfDot = photo.filename().lastIndexOf('.');
+            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
             String extension = "";
             if (lastIndexOfDot != 1) {
-                extension = photo.filename().substring(lastIndexOfDot);
+                extension = filePart.filename().substring(lastIndexOfDot);
             }
 
             String filename = RandomStringUtils.randomAlphabetic(15);
             filename += extension.replaceAll("[(){}]", "");
 
+            DirectorDTO directorDTO = new DirectorDTO();
+            directorDTO.setFirstName(firstName);
+            directorDTO.setLastName(lastName);
+            directorDTO.setNationality(nationality);
+            directorDTO.setBirthDate(LocalDate.parse(birthDate));
+            directorDTO.setPhoto(filename);
+
+            Path path = Paths.get(DIRECTOR_PHOTO + filename);
             Long id = Long.valueOf(request.pathVariable("id"));
-            return directorService.update(id,directorDTO,photo,filename)
-                    .flatMap(director -> ServerResponse.ok().bodyValue(director))
+            return directorService.update(id, directorDTO)
+                    .flatMap(director ->
+                            filePart.transferTo(path)
+                                    .then(ServerResponse.ok().bodyValue(director))
+                    )
                     .switchIfEmpty(ServerResponse.notFound().build())
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error updating director: " + e.getMessage()));
         }));

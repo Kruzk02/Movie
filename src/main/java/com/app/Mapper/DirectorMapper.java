@@ -15,5 +15,6 @@ public interface DirectorMapper {
     @Mapping(source = "lastName",target = "lastName")
     @Mapping(source = "birthDate",target = "birthDate")
     @Mapping(source = "nationality",target = "nationality")
+    @Mapping(source = "photo",target = "photo")
     Director mapDirectorDtoToDirector(DirectorDTO directorDTO);
 }
