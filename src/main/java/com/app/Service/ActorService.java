@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 public interface ActorService {
     Flux<Actor> findAll();
     Mono<Actor> findById(Long id);
-    Mono<Actor> save(ActorDTO actorDTO, FilePart filePart,String filename);
-    Mono<Actor> update(Long id,ActorDTO actorDTO, FilePart filePart,String filename);
+    Mono<Actor> save(ActorDTO actorDTO);
+    Mono<Actor> update(Long id,ActorDTO actorDTO);
     Mono<Void> delete(Long id);
 }
