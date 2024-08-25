@@ -9,6 +9,7 @@ public class MovieDTO implements Serializable {
     private LocalDate release_year;
     private String description;
     private byte seasons;
+    private String poster;
 
     public String getTitle() {
         return title;
@@ -40,5 +41,13 @@ public class MovieDTO implements Serializable {
 
     public void setSeasons(byte seasons) {
         this.seasons = seasons;
+    }
+
+    public String getPoster() {
+        return poster;
+    }
+
+    public void setPoster(String poster) {
+        this.poster = poster;
     }
 }

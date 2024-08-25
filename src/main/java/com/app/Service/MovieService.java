@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 public interface MovieService {
     Flux<Movie> findAll();
     Mono<Movie> findById(Long id);
-    Mono<Movie> save(MovieDTO movieDTO, FilePart filePart, String filename);
-    Mono<Movie> update(Long id,MovieDTO movieDTO, FilePart filePart,String filename);
+    Mono<Movie> save(MovieDTO movieDTO);
+    Mono<Movie> update(Long id,MovieDTO movieDTO);
     Mono<Void> delete(Long id);
 }

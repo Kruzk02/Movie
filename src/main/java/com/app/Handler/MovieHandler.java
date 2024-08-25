@@ -20,10 +20,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+
+import static com.app.constants.AppConstants.MOVIE_POSTER;
 
 @Component
 public class MovieHandler {
@@ -39,7 +43,7 @@ public class MovieHandler {
 
     public Mono<ServerResponse> findAll(ServerRequest request) {
         Flux<Movie> movieFlux = movieService.findAll();
-        return ServerResponse.ok().body(movieFlux, Movie.class);
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(movieFlux, Movie.class);
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
@@ -73,8 +77,8 @@ public class MovieHandler {
             Map<String, Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
 
-            FilePart poster = (FilePart) partMap.get("poster");
-            if (poster == null) {
+            FilePart filePart = (FilePart) partMap.get("poster");
+            if (filePart == null) {
                 return Mono.error(new IllegalArgumentException("Poster file is missing"));
             }
 
@@ -87,10 +91,10 @@ public class MovieHandler {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
-            int lastIndexOfDot = poster.filename().lastIndexOf('.');
+            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
             String extension = "";
             if (lastIndexOfDot != 1) {
-                extension = poster.filename().substring(lastIndexOfDot);
+                extension = filePart.filename().substring(lastIndexOfDot);
             }
             String filename = RandomStringUtils.randomAlphabetic(15);
             filename = filename + extension.replaceAll("[(){}]", "");
@@ -100,10 +104,13 @@ public class MovieHandler {
             movieDTO.setDescription(description);
             movieDTO.setRelease_year(LocalDate.parse(release_year));
             movieDTO.setSeasons(Byte.parseByte(seasons));
+            movieDTO.setPoster(filename);
 
-            return movieService.save(movieDTO,poster,filename)
-                            .flatMap(movie -> ServerResponse.ok().bodyValue(movie))
-                            .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie: " + e.getMessage()));
+            Path path = Paths.get(MOVIE_POSTER + filename);
+
+            return movieService.save(movieDTO)
+                    .flatMap(movie -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie)))
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie: " + e.getMessage()));
         }));
     }
 
@@ -112,8 +119,8 @@ public class MovieHandler {
             Map<String,Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
 
-            FilePart poster = (FilePart) partMap.get("poster");
-            if (poster == null) {
+            FilePart filePart = (FilePart) partMap.get("poster");
+            if (filePart == null) {
                 return Mono.error(new IllegalArgumentException("Poster file is missing"));
             }
 
@@ -126,10 +133,10 @@ public class MovieHandler {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
-            int lastIndexOfDot = poster.filename().lastIndexOf('.');
+            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
             String extension = "";
             if (lastIndexOfDot != 1) {
-                extension = poster.filename().substring(lastIndexOfDot);
+                extension = filePart.filename().substring(lastIndexOfDot);
             }
             String filename = RandomStringUtils.randomAlphabetic(15);
             filename = filename + extension.replaceAll("[(){}]", "");
@@ -141,11 +148,14 @@ public class MovieHandler {
             movieDTO.setDescription(description);
             movieDTO.setRelease_year(LocalDate.parse(release_year));
             movieDTO.setSeasons(Byte.parseByte(seasons));
+            movieDTO.setPoster(filename);
 
-            return movieService.update(id,movieDTO,poster,filename)
-                .flatMap(movie -> ServerResponse.ok().bodyValue(movie))
-                .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
-                .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update movie: " + e.getMessage()));
+            Path path = Paths.get(MOVIE_POSTER + filename);
+
+            return movieService.update(id,movieDTO)
+                    .flatMap(movie -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie)))
+                    .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
+                    .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update movie: " + e.getMessage()));
         }));
     }
 
