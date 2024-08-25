@@ -10,6 +10,7 @@ public class DirectorDTO {
     private String lastName;
     private LocalDate birthDate;
     private String nationality;
+    private String photo;
 
     public String getFirstName() {
         return firstName;
@@ -41,5 +42,13 @@ public class DirectorDTO {
 
     public void setNationality(String nationality) {
         this.nationality = nationality;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 }
