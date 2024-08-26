@@ -18,11 +18,15 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+
+import static com.app.constants.AppConstants.MOVIE_MEDIA;
 
 @Component
 public class MovieMediaHandler {
@@ -115,7 +119,7 @@ public class MovieMediaHandler {
             if (filePart == null) throw new IllegalArgumentException("Video file is missing");
 
             Long movieId = Long.valueOf(Objects.requireNonNull(getFormFieldValue(partMap, "movieId")));
-            byte episodes = Byte.parseByte(Objects.requireNonNull(getFormFieldValue(partMap, "episode")));
+            byte episodes = Byte.parseByte(Objects.requireNonNull(getFormFieldValue(partMap, "episodes")));
             LocalTime duration = LocalTime.parse(Objects.requireNonNull(getFormFieldValue(partMap, "duration")));
             String quality = getFormFieldValue(partMap,"quality");
 
@@ -137,9 +141,12 @@ public class MovieMediaHandler {
             movieMediaDTO.setEpisodes(episodes);
             movieMediaDTO.setDuration(duration);
             movieMediaDTO.setQuality(quality);
+            movieMediaDTO.setVideo(filename);
 
-            return movieMediaService.save(movieMediaDTO,filePart,filename)
-                    .flatMap(movieMedia -> ServerResponse.status(HttpStatus.CREATED).bodyValue(movieMedia))
+            Path path = Paths.get(MOVIE_MEDIA + filename);
+
+            return movieMediaService.save(movieMediaDTO)
+                    .flatMap(movieMedia -> filePart.transferTo(path).then(ServerResponse.status(HttpStatus.CREATED).bodyValue(movieMedia)))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie media: " + e.getMessage()));
         }));
     }
@@ -177,9 +184,12 @@ public class MovieMediaHandler {
             movieMediaDTO.setEpisodes(episodes);
             movieMediaDTO.setDuration(duration);
             movieMediaDTO.setQuality(quality);
+            movieMediaDTO.setVideo(filename);
 
-            return movieMediaService.update(id,movieMediaDTO,filePart,filename)
-                    .flatMap(movieMedia -> ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(movieMedia))
+            Path path = Paths.get(MOVIE_MEDIA + filename);
+
+            return movieMediaService.update(id,movieMediaDTO)
+                    .flatMap(movieMedia -> filePart.transferTo(path).then(ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(movieMedia)))
                     .switchIfEmpty(ServerResponse.notFound().build())
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie media: " + e.getMessage()));
         }));
