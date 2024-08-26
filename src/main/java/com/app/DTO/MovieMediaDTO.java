@@ -8,6 +8,7 @@ public class MovieMediaDTO {
     private byte episodes;
     private LocalTime duration;
     private String quality;
+    private String video;
 
     public Long getMovieId() {
         return movieId;
@@ -39,5 +40,13 @@ public class MovieMediaDTO {
 
     public void setQuality(String quality) {
         this.quality = quality;
+    }
+
+    public String getVideo() {
+        return video;
+    }
+
+    public void setVideo(String video) {
+        this.video = video;
     }
 }

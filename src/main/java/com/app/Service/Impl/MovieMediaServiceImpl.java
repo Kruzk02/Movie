@@ -14,20 +14,23 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
+
+import static com.app.constants.AppConstants.MOVIE_MEDIA;
 
 @Service
 public class MovieMediaServiceImpl implements MovieMediaService {
 
     private final MovieMediaRepository movieMediaRepository;
     private final ReactiveRedisTemplate<String,MovieMedia> redisTemplate;
-    private final FileService fileService;
 
     @Autowired
-    public MovieMediaServiceImpl(MovieMediaRepository movieMediaRepository, ReactiveRedisTemplate<String, MovieMedia> redisTemplate, FileService fileService) {
+    public MovieMediaServiceImpl(MovieMediaRepository movieMediaRepository, ReactiveRedisTemplate<String, MovieMedia> redisTemplate) {
         this.movieMediaRepository = movieMediaRepository;
         this.redisTemplate = redisTemplate;
-        this.fileService = fileService;
     }
 
     @Override
@@ -78,43 +81,58 @@ public class MovieMediaServiceImpl implements MovieMediaService {
     }
 
     @Override
-    public Mono<MovieMedia> save(MovieMediaDTO movieMediaDTO, FilePart filePart, String filename) {
-        return fileService.save(filePart,"movieMedia",filename)
-                .then(Mono.fromCallable(() -> {
-                    MovieMedia movieMedia = MovieMediaMapper.INSTANCE.mapDtoToEntity(movieMediaDTO);
-                    movieMedia.setFilePath(filename);
-                    return movieMedia;
-                })
-                .flatMap(movieMediaRepository::save)).log("Save a movie media");
+    public Mono<MovieMedia> save(MovieMediaDTO movieMediaDTO) {
+        MovieMedia movieMedia = MovieMediaMapper.INSTANCE.mapDtoToEntity(movieMediaDTO);
+        return movieMediaRepository.save(movieMedia)
+                .flatMap(savedMovieMedia -> redisTemplate
+                        .opsForValue()
+                        .set("movie_media:" + savedMovieMedia.getId(),savedMovieMedia,Duration.ofHours(24))
+                        .thenReturn(savedMovieMedia))
+                .log("Save a new movie media");
     }
 
     @Override
-    public Mono<MovieMedia> update(Long id, MovieMediaDTO movieMediaDTO, FilePart filePart, String filename) {
+    public Mono<MovieMedia> update(Long id, MovieMediaDTO movieMediaDTO) {
         return movieMediaRepository.findById(id)
-            .flatMap(existingMovieMedia ->
-                fileService.delete("movieMedia",existingMovieMedia.getFilePath())
-                    .then(fileService.save(filePart,"movieMedia",filename)
-                        .then(Mono.fromCallable(() -> {
-                            existingMovieMedia.setFilePath(filename);
-                            existingMovieMedia.setMovieId(movieMediaDTO.getMovieId());
-                            existingMovieMedia.setDuration(movieMediaDTO.getDuration());
-                            existingMovieMedia.setEpisodes(movieMediaDTO.getEpisodes());
-                            existingMovieMedia.setQuality(movieMediaDTO.getQuality());
+            .switchIfEmpty(Mono.error(new MovieMediaNotFound("Movie media not found")))
+            .flatMap(existingMovieMedia -> {
 
-                            return existingMovieMedia;
-                        }))
-                        .flatMap(movieMediaRepository::save)
-                    )
-            );
+                Path path = Paths.get(MOVIE_MEDIA + existingMovieMedia.getFilePath());
+                File file = path.toFile();
+
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                }
+
+                existingMovieMedia.setFilePath(movieMediaDTO.getVideo());
+                existingMovieMedia.setMovieId(movieMediaDTO.getMovieId());
+                existingMovieMedia.setDuration(movieMediaDTO.getDuration());
+                existingMovieMedia.setEpisodes(movieMediaDTO.getEpisodes());
+                existingMovieMedia.setQuality(movieMediaDTO.getQuality());
+
+                return movieMediaRepository.save(existingMovieMedia)
+                    .flatMap(updatedMovieMedia -> redisTemplate
+                        .opsForValue()
+                        .set("movie_media:" + updatedMovieMedia.getId(),updatedMovieMedia,Duration.ofHours(24))
+                        .thenReturn(updatedMovieMedia));
+            })
+            .log("Update movie media with a id: " + id);
     }
 
     @Override
     public Mono<Void> delete(Long id) {
         return movieMediaRepository.findById(id)
             .flatMap(movieMedia -> {
-                fileService.delete("movieMedia",movieMedia.getFilePath());
-                return movieMediaRepository.delete(movieMedia);
+                Path path = Paths.get(MOVIE_MEDIA + movieMedia.getFilePath());
+                File file = path.toFile();
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                }
+                return movieMediaRepository.delete(movieMedia)
+                        .then(redisTemplate
+                                .opsForValue()
+                                .delete("movie_media:" + movieMedia.getId()));
             })
-            .log("Delete movie media with a id: " + id);
+            .log("Delete movie media with a id: " + id).then();
     }
 }
