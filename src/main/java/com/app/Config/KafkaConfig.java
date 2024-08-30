@@ -4,15 +4,14 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.LongDeserializer;
-import org.apache.kafka.common.serialization.LongSerializer;
+import org.apache.kafka.common.serialization.*;
+import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.core.*;
 
 import java.util.HashMap;
@@ -26,6 +25,16 @@ public class KafkaConfig {
     private String bootstrapAddress;
 
     @Bean
+    public KafkaStreamsConfiguration kStreamConfig() {
+        Map<String,Object> props = new HashMap<>();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG,"userActivityStream");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,bootstrapAddress);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.Long().getClass());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,Serdes.ByteArray().getClass());
+        return new KafkaStreamsConfiguration(props);
+    }
+
+    @Bean
     public KafkaAdmin kafkaAdmin() {
         Map<String,Object> configs = new HashMap<>();
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,bootstrapAddress);
@@ -33,11 +42,21 @@ public class KafkaConfig {
     }
 
     @Bean
-    public NewTopic topic() {
+    public NewTopic movieDataTopic() {
         return new NewTopic("movie-data",1, (short) 1);
     }
 
-    public ProducerFactory<Long, byte[]> movieProducerFactory() {
+    @Bean
+    public NewTopic userActivityInputTopic() {
+        return new NewTopic("user-activity-input",1, (short) 1);
+    }
+
+    @Bean
+    public NewTopic userActivityProcessedTopic() {
+        return new NewTopic("user-activity-processed",1, (short) 1);
+    }
+
+    public ProducerFactory<Long, byte[]> producerFactory() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
@@ -47,7 +66,7 @@ public class KafkaConfig {
 
     @Bean
     public KafkaTemplate<Long, byte[]> kafkaTemplate() {
-        return new KafkaTemplate<>(movieProducerFactory());
+        return new KafkaTemplate<>(producerFactory());
     }
 
     public ConsumerFactory<Long, byte[]> consumerFactory(String groupId) {
