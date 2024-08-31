@@ -47,10 +47,12 @@ public class MovieHandler {
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
-        Long id = Long.valueOf(request.pathVariable("id"));
-        Mono<Movie> movieMono = movieService.findById(id);
-        return movieMono.flatMap(movie -> ServerResponse.ok().bodyValue(movie))
-                .switchIfEmpty(ServerResponse.notFound().build()) ;
+        return getUserIdAndProcess(request,userId -> {
+            Long id = Long.valueOf(request.pathVariable("id"));
+            Mono<Movie> movieMono = movieService.findByIdAndReceiveUserId(id, userId);
+            return movieMono.flatMap(movie -> ServerResponse.ok().bodyValue(movie))
+                    .switchIfEmpty(ServerResponse.notFound().build()) ;
+        });
     }
 
     public Mono<ServerResponse> getMoviePoster(ServerRequest request) {
@@ -188,5 +190,15 @@ public class MovieHandler {
         }
 
         return processFunction.apply(role);
+    }
+
+    private Mono<ServerResponse> getUserIdAndProcess(ServerRequest request, Function<Long, Mono<ServerResponse>> processFunction) {
+        Long userId = request.exchange().getAttribute("userId");
+
+        if (Objects.isNull(userId)) {
+            return ServerResponse.badRequest().bodyValue("User attributes not found");
+        }
+
+        return processFunction.apply(userId);
     }
 }
