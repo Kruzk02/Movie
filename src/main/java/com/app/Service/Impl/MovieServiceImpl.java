@@ -7,6 +7,7 @@ import com.app.Mapper.MovieMapper;
 import com.app.Repository.*;
 import com.app.Service.MovieService;
 import com.app.messaging.producer.MovieDataProducer;
+import com.app.messaging.producer.UserActivityProducer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +30,14 @@ public class MovieServiceImpl implements MovieService {
     private static final Logger log = LogManager.getLogger(MovieServiceImpl.class);
     private final MovieRepository movieRepository;
     private final MovieDataProducer movieDataProducer;
+    private final UserActivityProducer activityProducer;
     private final ReactiveRedisTemplate<String,Movie> redisTemplate;
 
     @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository, MovieDataProducer movieDataProducer, ReactiveRedisTemplate<String, Movie> redisTemplate) {
+    public MovieServiceImpl(MovieRepository movieRepository, MovieDataProducer movieDataProducer, UserActivityProducer activityProducer, ReactiveRedisTemplate<String, Movie> redisTemplate) {
         this.movieRepository = movieRepository;
         this.movieDataProducer = movieDataProducer;
+        this.activityProducer = activityProducer;
         this.redisTemplate = redisTemplate;
     }
 
@@ -55,6 +58,24 @@ public class MovieServiceImpl implements MovieService {
                 )
             )
         .log("Find all movie");
+    }
+
+    @Override
+    public Mono<Movie> findByIdAndReceiveUserId(Long id, Long userId) {
+        return redisTemplate.opsForValue().get("movie:" + id)
+            .switchIfEmpty(
+                movieRepository.findById(id)
+                    .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
+                    .flatMap(movie ->
+                        redisTemplate
+                            .opsForValue()
+                            .set("movie:" + movie.getId(), movie, Duration.ofHours(24))
+                            .thenReturn(movie)
+                    )
+            )
+                .doOnNext(movie -> activityProducer.send(new UserActivity(userId,movie)))
+            .doOnError(e -> log.error("Error fetching a movie with id: {} ", id, e))
+            .log("Find movie with id: " + id);
     }
 
     /**
