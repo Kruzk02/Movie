@@ -25,16 +25,6 @@ public class KafkaConfig {
     private String bootstrapAddress;
 
     @Bean
-    public KafkaStreamsConfiguration kStreamConfig() {
-        Map<String,Object> props = new HashMap<>();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG,"userActivityStream");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,bootstrapAddress);
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.Long().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG,Serdes.ByteArray().getClass());
-        return new KafkaStreamsConfiguration(props);
-    }
-
-    @Bean
     public KafkaAdmin kafkaAdmin() {
         Map<String,Object> configs = new HashMap<>();
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,bootstrapAddress);
