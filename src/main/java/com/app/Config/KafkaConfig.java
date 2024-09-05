@@ -46,6 +46,11 @@ public class KafkaConfig {
         return new NewTopic("user-activity-processed",1, (short) 1);
     }
 
+    @Bean
+    public NewTopic recommendMovieTopic() {
+        return new NewTopic("recommend-movie",1, (short) 1);
+    }
+
     public ProducerFactory<Long, byte[]> producerFactory() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
@@ -86,6 +91,13 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<Long, byte[]> directorKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<Long, byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory("director-group"));
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<Long, byte[]> recommendMovieKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Long, byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory("recommend-movie-group"));
         return factory;
     }
 }
