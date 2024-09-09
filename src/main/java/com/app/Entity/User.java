@@ -1,5 +1,9 @@
 package com.app.Entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -8,9 +12,12 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.time.LocalDate;
 import java.util.Collection;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table("users")
 public class User {
-
     @Id
     @Column("id")
     private Long id;
@@ -28,82 +35,4 @@ public class User {
     private LocalDate birthDate;
     @Column("enabled")
     private boolean enabled;
-
-    public User() {
-    }
-
-    public User(Long id, String username, String email, String password, String phoneNumber, Nationality nationality, LocalDate birthDate, boolean enabled) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.password = password;
-        this.phoneNumber = phoneNumber;
-        this.nationality = nationality;
-        this.birthDate = birthDate;
-        this.enabled = enabled;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public Nationality getNationality() {
-        return nationality;
-    }
-
-    public void setNationality(Nationality nationality) {
-        this.nationality = nationality;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
 }
