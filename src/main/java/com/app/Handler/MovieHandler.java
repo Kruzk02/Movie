@@ -104,7 +104,7 @@ public class MovieHandler {
             MovieDTO movieDTO = new MovieDTO();
             movieDTO.setTitle(title);
             movieDTO.setDescription(description);
-            movieDTO.setRelease_year(LocalDate.parse(release_year));
+            movieDTO.setReleaseYear(LocalDate.parse(release_year));
             movieDTO.setSeasons(Byte.parseByte(seasons));
             movieDTO.setPoster(filename);
 
@@ -148,7 +148,7 @@ public class MovieHandler {
             MovieDTO movieDTO = new MovieDTO();
             movieDTO.setTitle(title);
             movieDTO.setDescription(description);
-            movieDTO.setRelease_year(LocalDate.parse(release_year));
+            movieDTO.setReleaseYear(LocalDate.parse(release_year));
             movieDTO.setSeasons(Byte.parseByte(seasons));
             movieDTO.setPoster(filename);
 

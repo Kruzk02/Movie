@@ -140,7 +140,7 @@ public class MovieServiceImpl implements MovieService {
                     }
 
                     existingMovie.setTitle(movieDTO.getTitle());
-                    existingMovie.setReleaseYear(movieDTO.getRelease_year());
+                    existingMovie.setReleaseYear(movieDTO.getReleaseYear());
                     existingMovie.setDescription(movieDTO.getDescription());
                     existingMovie.setSeasons(movieDTO.getSeasons());
                     existingMovie.setPoster(movieDTO.getPoster());
