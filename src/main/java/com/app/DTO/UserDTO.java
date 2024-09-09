@@ -1,9 +1,17 @@
 package com.app.DTO;
 
 import com.app.Entity.Nationality;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserDTO {
     private String username;
     private String email;
@@ -11,28 +19,4 @@ public class UserDTO {
     private String phoneNumber;
     private Nationality nationality;
     private LocalDate birthDate;
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public Nationality getNationality() {
-        return nationality;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
 }
