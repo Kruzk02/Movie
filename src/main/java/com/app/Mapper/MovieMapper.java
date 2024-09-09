@@ -12,7 +12,7 @@ public interface MovieMapper {
     MovieMapper INSTANCE = Mappers.getMapper(MovieMapper.class);
 
     @Mapping(source = "title",target = "title")
-    @Mapping(source = "release_year",target = "releaseYear")
+    @Mapping(source = "releaseYear",target = "releaseYear")
     @Mapping(source = "description",target = "description")
     @Mapping(source = "seasons",target = "seasons")
     @Mapping(source = "poster",target = "poster")
