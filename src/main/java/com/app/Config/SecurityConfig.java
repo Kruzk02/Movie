@@ -1,7 +1,6 @@
 package com.app.Config;
 
 import com.app.Repository.RolePrivilegeRepository;
-import com.app.Repository.RoleRepository;
 import com.app.Repository.UserRepository;
 import com.app.Repository.UserRoleRepository;
 import com.app.Service.userdetailsservice.CustomUserDetailsService;
@@ -10,10 +9,12 @@ import com.app.jwt.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -21,10 +22,7 @@ import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.server.WebFilter;
 
 @EnableWebFluxSecurity
@@ -49,13 +47,17 @@ public class SecurityConfig {
     @Bean
     SecurityWebFilterChain filterChain(ServerHttpSecurity https,ReactiveAuthenticationManager reactiveAuthenticationManager){
         return https
+            .httpBasic(Customizer.withDefaults())
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .authenticationManager(reactiveAuthenticationManager)
             .authorizeExchange(auth -> auth
-                .anyExchange().permitAll()
+                .pathMatchers("/users/login", "/users/register").permitAll()
+                .pathMatchers(HttpMethod.GET,"/movies/**","/actors/**","/directors/**","/genres/**").permitAll()
+                .pathMatchers("/movies/**","/actors/**","/directors/**","/genres/**").hasAuthority("WRITE_PRIVILEGE")
+                .anyExchange().authenticated()
             )
             .addFilterAt(rateLimitFilter,SecurityWebFiltersOrder.FIRST)
-            .addFilterAt(jwtFilter(reactiveAuthenticationManager, reactiveUserDetailsService()), SecurityWebFiltersOrder.AUTHENTICATION)
+            .addFilterAt(jwtFilter(reactiveAuthenticationManager, reactiveUserDetailsService()), SecurityWebFiltersOrder.HTTP_BASIC)
             .build();
     }
 
@@ -74,9 +76,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    ReactiveAuthenticationManager reactiveAuthenticationManager(ReactiveUserDetailsService reactiveUserDetailsService,PasswordEncoder passwordEncoder){
-        UserDetailsRepositoryReactiveAuthenticationManager reactiveAuthenticationManager = new UserDetailsRepositoryReactiveAuthenticationManager(reactiveUserDetailsService);
+    ReactiveAuthenticationManager reactiveAuthenticationManager(PasswordEncoder passwordEncoder){
+        UserDetailsRepositoryReactiveAuthenticationManager reactiveAuthenticationManager = new UserDetailsRepositoryReactiveAuthenticationManager(reactiveUserDetailsService());
         reactiveAuthenticationManager.setPasswordEncoder(passwordEncoder);
+
         return reactiveAuthenticationManager;
     }
 
