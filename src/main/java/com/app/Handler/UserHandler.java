@@ -5,6 +5,7 @@ import com.app.Service.EmailService;
 import com.app.Service.UserService;
 import com.app.Service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -73,6 +74,6 @@ public class UserHandler {
                     String role = exchange.getAttribute("role");
                     return ServerResponse.ok().bodyValue("Username: " + username + ", User ID: " + userId + ", Roles: " + role);
                 })
-                .switchIfEmpty(ServerResponse.badRequest().bodyValue("User attributes not found"));
+                .switchIfEmpty(ServerResponse.status(HttpStatus.UNAUTHORIZED).bodyValue("User attributes not found"));
     }
 }

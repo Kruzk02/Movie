@@ -25,7 +25,6 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 import static com.app.constants.AppConstants.MOVIE_POSTER;
 
@@ -47,35 +46,34 @@ public class MovieHandler {
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {
-        return getUserIdAndProcess(request,userId -> {
-            Long id = Long.valueOf(request.pathVariable("id"));
-            Mono<Movie> movieMono = movieService.findByIdAndReceiveUserId(id, userId);
-            return movieMono.flatMap(movie -> ServerResponse.ok().bodyValue(movie))
-                    .switchIfEmpty(ServerResponse.notFound().build()) ;
-        });
+        Long userId = request.exchange().getAttribute("userId");
+        Long id = Long.valueOf(request.pathVariable("id"));
+        Mono<Movie> movieMono = movieService.findByIdAndReceiveUserId(id, userId);
+        return movieMono.flatMap(movie -> ServerResponse.ok().bodyValue(movie))
+                .switchIfEmpty(ServerResponse.notFound().build()) ;
     }
 
     public Mono<ServerResponse> getMoviePoster(ServerRequest request) {
         return movieService.findById(Long.valueOf(request.pathVariable("id")))
-                .flatMap(movie -> {
-                    if (movie.getPoster() == null || movie.getPoster().isEmpty()) {
-                        return ServerResponse.notFound().build();
-                    }
-                    Resource resource = resourceLoader.getResource("file:moviePoster/"+movie.getPoster());
-                    int lastIndexOfDot = Objects.requireNonNull(resource.getFilename()).lastIndexOf('.') + 1;
-                    String extension = "";
-                    if (lastIndexOfDot != 1) {
-                        extension = resource.getFilename().substring(lastIndexOfDot);
-                    }
-                    return ServerResponse.ok()
-                            .header(HttpHeaders.CONTENT_TYPE,"image/"+extension)
-                            .bodyValue(resource);
-                })
-                .switchIfEmpty(ServerResponse.notFound().build());
+            .flatMap(movie -> {
+                if (movie.getPoster() == null || movie.getPoster().isEmpty()) {
+                    return ServerResponse.notFound().build();
+                }
+                Resource resource = resourceLoader.getResource("file:moviePoster/"+movie.getPoster());
+                int lastIndexOfDot = Objects.requireNonNull(resource.getFilename()).lastIndexOf('.') + 1;
+                String extension = "";
+                if (lastIndexOfDot != 1) {
+                    extension = resource.getFilename().substring(lastIndexOfDot);
+                }
+                return ServerResponse.ok()
+                        .header(HttpHeaders.CONTENT_TYPE,"image/"+extension)
+                        .bodyValue(resource);
+            })
+            .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     public Mono<ServerResponse> save(ServerRequest request) {
-        return checkRoleAndProcess(request, role -> request.multipartData().flatMap(parts ->{
+        return request.multipartData().flatMap(parts ->{
             Map<String, Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
 
@@ -113,11 +111,11 @@ public class MovieHandler {
             return movieService.save(movieDTO)
                     .flatMap(movie -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie)))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie: " + e.getMessage()));
-        }));
+        });
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        return checkRoleAndProcess(request, role -> request.multipartData().flatMap(parts -> {
+        return request.multipartData().flatMap(parts -> {
             Map<String,Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
 
@@ -158,16 +156,14 @@ public class MovieHandler {
                     .flatMap(movie -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie)))
                     .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update movie: " + e.getMessage()));
-        }));
+        });
     }
 
     public Mono<ServerResponse> delete(ServerRequest request) {
-        return checkRoleAndProcess(request, role -> {
-            Long id = Long.valueOf(request.pathVariable("id"));
-            return movieService.delete(id)
-                    .then(ServerResponse.ok().build())
-                    .switchIfEmpty(ServerResponse.notFound().build());
-        });
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return movieService.delete(id)
+                .then(ServerResponse.ok().build())
+                .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     private String getFormFieldValue(Map<String,Part> partMap,String fieldName) {
@@ -178,27 +174,4 @@ public class MovieHandler {
         return null;
     }
 
-    private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
-        String role = request.exchange().getAttribute("role");
-
-        if (Objects.isNull(role)) {
-            return ServerResponse.badRequest().bodyValue("User attributes not found");
-        }
-
-        if ("ROLE_USER".equals(role)) {
-            return ServerResponse.status(403).build();
-        }
-
-        return processFunction.apply(role);
-    }
-
-    private Mono<ServerResponse> getUserIdAndProcess(ServerRequest request, Function<Long, Mono<ServerResponse>> processFunction) {
-        Long userId = request.exchange().getAttribute("userId");
-
-        if (Objects.isNull(userId)) {
-            return ServerResponse.badRequest().bodyValue("User attributes not found");
-        }
-
-        return processFunction.apply(userId);
-    }
 }
