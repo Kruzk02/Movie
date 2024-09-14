@@ -60,7 +60,6 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService {
                 .map(this::getGrantedAuthorities);
     }
 
-    //don't ask because i can't name thing
     private Mono<List<String>> getPrivileges(Collection<Role> roles) {
         List<String> privileges = new ArrayList<>();
 
@@ -83,7 +82,7 @@ public class CustomUserDetailsService implements ReactiveUserDetailsService {
     private Collection<GrantedAuthority> getGrantedAuthorities(List<String> privileges) {
         return privileges.stream()
                 .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
 }
