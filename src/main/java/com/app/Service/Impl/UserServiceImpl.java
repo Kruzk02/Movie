@@ -10,8 +10,6 @@ import com.app.Repository.UserRepository;
 import com.app.Repository.UserRoleRepository;
 import com.app.Service.UserService;
 import com.app.jwt.JwtUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,7 +24,6 @@ import java.util.regex.Pattern;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private static final Logger log = LogManager.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserRoleRepository userRoleRepository;
@@ -75,8 +72,7 @@ public class UserServiceImpl implements UserService {
                 ))
                 .doOnNext(ReactiveSecurityContextHolder::withAuthentication)
                 .flatMap(authentication -> userRepository.findByUsername(userDTO.getUsername())
-                        .flatMap(user -> userRoleRepository.findRoleByUsername(user.getUsername())
-                                .map(role -> jwtUtil.generateToken(user.getUsername(),user.getId(), role.getName()))))
+                        .map(user -> jwtUtil.generateToken(user.getUsername(),user.getId())))
                 .onErrorResume(ex -> Mono.error(new UserNotExistingException("User not existing " + ex.getMessage())))
                 .doOnNext(token -> System.out.println("Login with a username: " + userDTO.getUsername() + ", token: " + token));
     }
