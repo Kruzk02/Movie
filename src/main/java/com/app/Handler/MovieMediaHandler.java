@@ -6,8 +6,6 @@ import com.app.Service.MovieMediaService;
 import com.app.Service.VideoStreamService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.FilePart;
@@ -24,7 +22,6 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 
 import static com.app.constants.AppConstants.MOVIE_MEDIA;
 
@@ -111,7 +108,7 @@ public class MovieMediaHandler {
     }
 
     public Mono<ServerResponse> save(ServerRequest request) {
-        return checkRoleAndProcess(request,role -> request.multipartData().flatMap(parts -> {
+        return request.multipartData().flatMap(parts -> {
             Map<String, Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key,value) -> System.out.println("Part: " + key + " -> " + value));
 
@@ -148,11 +145,11 @@ public class MovieMediaHandler {
             return movieMediaService.save(movieMediaDTO)
                     .flatMap(movieMedia -> filePart.transferTo(path).then(ServerResponse.status(HttpStatus.CREATED).bodyValue(movieMedia)))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie media: " + e.getMessage()));
-        }));
+        });
     }
 
     public Mono<ServerResponse> update(ServerRequest request) {
-        return checkRoleAndProcess(request,role -> request.multipartData().flatMap(parts -> {
+        return request.multipartData().flatMap(parts -> {
             Map<String, Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key,value) -> System.out.println("Part: " + key + " -> " + value));
 
@@ -192,16 +189,14 @@ public class MovieMediaHandler {
                     .flatMap(movieMedia -> filePart.transferTo(path).then(ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(movieMedia)))
                     .switchIfEmpty(ServerResponse.notFound().build())
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie media: " + e.getMessage()));
-        }));
+        });
     }
 
     public Mono<ServerResponse> delete(ServerRequest request){
-        return checkRoleAndProcess(request,role -> {
-            Long id = Long.valueOf(request.pathVariable("id"));
-            return movieMediaService.delete(id)
-                    .then(ServerResponse.ok().build())
-                    .switchIfEmpty(ServerResponse.notFound().build());
-        });
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return movieMediaService.delete(id)
+            .then(ServerResponse.ok().build())
+            .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     private String getFormFieldValue(Map<String,Part> partMap, String fieldName) {
@@ -212,17 +207,4 @@ public class MovieMediaHandler {
         return null;
     }
 
-    private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
-        String role = request.exchange().getAttribute("role");
-
-        if (Objects.isNull(role)) {
-            return ServerResponse.badRequest().bodyValue("User attributes not found");
-        }
-
-        if ("ROLE_USER".equals(role)) {
-            return ServerResponse.status(403).build();
-        }
-
-        return processFunction.apply(role);
-    }
 }

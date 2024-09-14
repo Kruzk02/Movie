@@ -80,7 +80,7 @@ public class ActorHandler {
     }
 
     public Mono<ServerResponse> save(ServerRequest request) {
-        return checkRoleAndProcess(request, role -> request.multipartData().flatMap(parts -> {
+        return request.multipartData().flatMap(parts -> {
             Map<String, Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
 
@@ -119,11 +119,11 @@ public class ActorHandler {
             return actorService.save(actorDTO)
                     .flatMap(actor -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)))
                     .onErrorResume(e -> ServerResponse.ok().bodyValue("Error saving actor: " + e.getMessage()));
-        }));
+        });
     }
 
     public Mono<ServerResponse> update(ServerRequest request){
-        return checkRoleAndProcess(request, role -> request.multipartData().flatMap(parts -> {
+        return request.multipartData().flatMap(parts -> {
             Map<String, Part> partMap = parts.toSingleValueMap();
 
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
@@ -164,27 +164,23 @@ public class ActorHandler {
                     .flatMap(actor -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)))
                     .switchIfEmpty(ServerResponse.notFound().build())
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + e.getMessage()));
-        }));
-    }
-
-    public Mono<ServerResponse> delete(ServerRequest request){
-        return checkRoleAndProcess(request,role -> {
-            Long id = Long.valueOf(request.pathVariable("id"));
-            return actorService.delete(id)
-                    .then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).build())
-                    .switchIfEmpty(ServerResponse.notFound().build());
         });
     }
 
+    public Mono<ServerResponse> delete(ServerRequest request){
+        Long id = Long.valueOf(request.pathVariable("id"));
+        return actorService.delete(id)
+            .then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).build())
+            .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
     public Mono<ServerResponse> saveActorMovie(ServerRequest request){
-        return checkRoleAndProcess(request,role ->
-            request.bodyToMono(ActorMovieDTO.class)
-                    .flatMap(actorMovieService::saveActorMovie)
-                    .flatMap(savedActorMovie -> ServerResponse.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(savedActorMovie))
-                    .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving actor: " + error.getMessage()))
-        );
+        return request.bodyToMono(ActorMovieDTO.class)
+            .flatMap(actorMovieService::saveActorMovie)
+            .flatMap(savedActorMovie -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(savedActorMovie))
+            .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving actor: " + error.getMessage()));
     }
 
     public Mono<ServerResponse> findMovieByActorId(ServerRequest request) {
@@ -198,13 +194,12 @@ public class ActorHandler {
     }
 
     public Mono<ServerResponse> updateActorMovie(ServerRequest request){
-        return checkRoleAndProcess(request,role -> request.bodyToMono(ActorMovieDTO.class)
+        return request.bodyToMono(ActorMovieDTO.class)
                 .flatMap(actorMovieService::updateActorMovie)
                 .flatMap(savedActorMovie -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedActorMovie))
-                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + error.getMessage()))
-        );
+                .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + error.getMessage()));
     }
 
     private String getFormFieldValue(Map<String, Part> partMap, String fieldName) {
@@ -215,17 +210,4 @@ public class ActorHandler {
         return null;
     }
 
-    private Mono<ServerResponse> checkRoleAndProcess(ServerRequest request, Function<String, Mono<ServerResponse>> processFunction) {
-        String role = request.exchange().getAttribute("role");
-
-        if (Objects.isNull(role)) {
-            return ServerResponse.badRequest().bodyValue("User attributes not found");
-        }
-
-        if ("ROLE_USER".equals(role)) {
-            return ServerResponse.status(403).build();
-        }
-
-        return processFunction.apply(role);
-    }
 }
