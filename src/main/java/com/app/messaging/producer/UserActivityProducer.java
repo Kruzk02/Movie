@@ -22,6 +22,10 @@ public class UserActivityProducer {
     }
 
     public void send(UserActivity userActivity) {
+        if (userActivity == null || userActivity.getUserId() == null) {
+            log.warn("Skipping send due to null UserActivity or null UserId");
+            return;
+        }
         try {
             byte[] bytes = objectMapper.writeValueAsBytes(userActivity);
             kafkaTemplate.send("user-activity-input",bytes);
