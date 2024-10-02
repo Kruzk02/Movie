@@ -6,7 +6,7 @@ import com.app.Repository.UserRoleRepository;
 import com.app.Service.userdetailsservice.CustomUserDetailsService;
 import com.app.jwt.JwtFilter;
 import com.app.jwt.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,6 +27,7 @@ import org.springframework.web.server.WebFilter;
 
 @EnableWebFluxSecurity
 @Configuration
+@AllArgsConstructor
 public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
@@ -34,15 +35,6 @@ public class SecurityConfig {
     private final UserRoleRepository userRoleRepository;
     private final RolePrivilegeRepository rolePrivilegeRepository;
     private final RateLimitFilter rateLimitFilter;
-
-    @Autowired
-    public SecurityConfig(JwtUtil jwtUtil, UserRepository userRepository, UserRoleRepository userRoleRepository, RolePrivilegeRepository rolePrivilegeRepository, RateLimitFilter rateLimitFilter) {
-        this.jwtUtil = jwtUtil;
-        this.userRepository = userRepository;
-        this.userRoleRepository = userRoleRepository;
-        this.rolePrivilegeRepository = rolePrivilegeRepository;
-        this.rateLimitFilter = rateLimitFilter;
-    }
 
     @Bean
     SecurityWebFilterChain filterChain(ServerHttpSecurity https,ReactiveAuthenticationManager reactiveAuthenticationManager){
