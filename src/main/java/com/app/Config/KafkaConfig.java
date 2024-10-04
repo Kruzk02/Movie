@@ -1,17 +1,18 @@
 package com.app.Config;
 
+import com.app.Entity.MovieEvent;
+import com.app.serde.Deserializer.MovieEventDeserializer;
+import com.app.serde.Serializer.MovieEventSerializer;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.*;
-import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.core.*;
 
 import java.util.HashMap;
@@ -32,8 +33,8 @@ public class KafkaConfig {
     }
 
     @Bean
-    public NewTopic movieDataTopic() {
-        return new NewTopic("movie-data",1, (short) 1);
+    public NewTopic movieEventTopic() {
+        return new NewTopic("movie-event",1, (short) 1);
     }
 
     @Bean
@@ -51,7 +52,7 @@ public class KafkaConfig {
         return new NewTopic("recommend-movie",1, (short) 1);
     }
 
-    public ProducerFactory<Long, byte[]> producerFactory() {
+    private ProducerFactory<Long, byte[]> producerFactory() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
@@ -60,44 +61,66 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<Long, byte[]> kafkaTemplate() {
+    public KafkaTemplate<Long, byte[]> template() {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    public ConsumerFactory<Long, byte[]> consumerFactory(String groupId) {
+    private ProducerFactory<Long, MovieEvent> movieEventproducerFactory() {
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
+        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
+        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, MovieEventSerializer.class);
+        return new DefaultKafkaProducerFactory<>(configs);
+    }
+
+    @Bean
+    public KafkaTemplate<Long, MovieEvent> movieEventTemplate() {
+        return new KafkaTemplate<>(movieEventproducerFactory());
+    }
+
+    private ConsumerFactory<Long, MovieEvent> movieEventconsumerFactory(String groupId) {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, MovieEventDeserializer.class);
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<Long, byte[]> genreKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<Long, byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory("genre-group"));
+    public ConcurrentKafkaListenerContainerFactory<Long, MovieEvent> genreKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Long, MovieEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(movieEventconsumerFactory("genre-group"));
         return factory;
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<Long, byte[]> actorKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<Long, byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory("actor-group"));
+    public ConcurrentKafkaListenerContainerFactory<Long, MovieEvent> actorKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Long, MovieEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(movieEventconsumerFactory("actor-group"));
         return factory;
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<Long, byte[]> directorKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<Long, byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory("director-group"));
+    public ConcurrentKafkaListenerContainerFactory<Long, MovieEvent> directorKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Long, MovieEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(movieEventconsumerFactory("director-group"));
         return factory;
+    }
+
+    private ConsumerFactory<Long, byte[]> recommendMovieConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "recommend-movie-group");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, MovieEventDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<Long, byte[]> recommendMovieKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<Long, byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory("recommend-movie-group"));
+        factory.setConsumerFactory(recommendMovieConsumerFactory());
         return factory;
     }
 }
