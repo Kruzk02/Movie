@@ -6,40 +6,34 @@ import com.app.Expection.MovieNotFound;
 import com.app.Mapper.MovieMapper;
 import com.app.Repository.*;
 import com.app.Service.MovieService;
-import com.app.messaging.producer.MovieDataProducer;
+import com.app.messaging.producer.MovieEventProducer;
 import com.app.messaging.producer.UserActivityProducer;
+import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
 
 import static com.app.constants.AppConstants.MOVIE_POSTER;
 
 @Service
+@AllArgsConstructor
 public class MovieServiceImpl implements MovieService {
 
     private static final Logger log = LogManager.getLogger(MovieServiceImpl.class);
     private final MovieRepository movieRepository;
-    private final MovieDataProducer movieDataProducer;
+    private final MovieEventProducer movieEventProducer;
     private final UserActivityProducer activityProducer;
     private final ReactiveRedisTemplate<String,Movie> redisTemplate;
 
-    @Autowired
-    public MovieServiceImpl(MovieRepository movieRepository, MovieDataProducer movieDataProducer, UserActivityProducer activityProducer, ReactiveRedisTemplate<String, Movie> redisTemplate) {
-        this.movieRepository = movieRepository;
-        this.movieDataProducer = movieDataProducer;
-        this.activityProducer = activityProducer;
-        this.redisTemplate = redisTemplate;
-    }
 
     /**
      * Find all movies, fetching from cache if available, otherwise from the database
@@ -73,7 +67,7 @@ public class MovieServiceImpl implements MovieService {
                             .thenReturn(movie)
                     )
             )
-                .doOnNext(movie -> activityProducer.send(new UserActivity(userId,movie)))
+            .doOnNext(movie -> activityProducer.send(new UserActivity(userId,movie)))
             .doOnError(e -> log.error("Error fetching a movie with id: {} ", id, e))
             .log("Find movie with id: " + id);
     }
@@ -117,7 +111,7 @@ public class MovieServiceImpl implements MovieService {
                         .set("movie:"+savedMovie.getId(),movie,Duration.ofHours(24))
                         .thenReturn(savedMovie)
                 )
-                .doOnSuccess(movieDataProducer::send)
+                .doOnSuccess(savedMovie -> movieEventProducer.send(new MovieEvent(savedMovie.getId(),EventType.CREATED,Instant.now())))
                 .log("Save a new movie: " + movie);
     }
 
@@ -151,7 +145,7 @@ public class MovieServiceImpl implements MovieService {
                             .set("movie:" + updatedMovie.getId(), updatedMovie, Duration.ofHours(24))
                             .thenReturn(updatedMovie)
                     )
-                    .doOnSuccess(movieDataProducer::send);
+                    .doOnSuccess(updatedMovie -> movieEventProducer.send(new MovieEvent(updatedMovie.getId(),EventType.UPDATED,Instant.now())));
                 }
             ).log("Update a Movie with id: " + id);
     }
