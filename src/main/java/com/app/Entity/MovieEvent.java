@@ -4,12 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class UserActivity {
+public class MovieEvent {
 
-    private Long userId;
-    private Movie movie; // Need to call api to get all actors, directors and genres
-
+    private Long movieId;
+    private EventType eventType;
+    private Instant createAt;
 }
