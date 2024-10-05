@@ -3,10 +3,12 @@ package com.app.Service.Impl;
 import com.app.DTO.DirectorMovieDTO;
 import com.app.Entity.Director;
 import com.app.Entity.DirectorMoviePK;
+import com.app.Entity.EventType;
 import com.app.Entity.Movie;
+import com.app.Expection.MovieEventException;
 import com.app.Repository.DirectorMovieRepository;
 import com.app.Service.DirectorMovieService;
-import com.app.messaging.consumer.DirectorMovieConsumer;
+import com.app.messaging.consumer.MovieEventConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,22 +21,26 @@ import java.util.stream.Collectors;
 public class DirectorMovieServiceImpl implements DirectorMovieService {
 
     private final DirectorMovieRepository directorMovieRepository;
-    private final DirectorMovieConsumer directorMovieConsumer;
+    private final MovieEventConsumer movieEventConsumer;
 
     @Autowired
-    public DirectorMovieServiceImpl(DirectorMovieRepository directorMovieRepository, DirectorMovieConsumer directorMovieConsumer) {
+    public DirectorMovieServiceImpl(DirectorMovieRepository directorMovieRepository, MovieEventConsumer movieEventConsumer) {
         this.directorMovieRepository = directorMovieRepository;
-        this.directorMovieConsumer = directorMovieConsumer;
+        this.movieEventConsumer = movieEventConsumer;
     }
 
     @Override
     public Mono<Void> saveDirectorMovie(DirectorMovieDTO directorMovieDTO) {
-        return Mono.just(directorMovieConsumer.receive())
-            .flatMapMany(movie -> {
-                Set<DirectorMoviePK> directorMovies = directorMovieDTO.getDirectorId().stream()
-                    .map(directorId -> new DirectorMoviePK(directorId,movie.getId()))
-                    .collect(Collectors.toSet());
-                return directorMovieRepository.saveAll(directorMovies);
+        return Mono.just(movieEventConsumer.consumerForDirector())
+            .flatMapMany(movieEvent -> {
+                if (movieEvent.getEventType() == EventType.CREATED) {
+                    Set<DirectorMoviePK> directorMovies = directorMovieDTO.getDirectorId().stream()
+                            .map(directorId -> new DirectorMoviePK(directorId,movieEvent.getMovieId()))
+                            .collect(Collectors.toSet());
+                    return directorMovieRepository.saveAll(directorMovies);
+                } else {
+                    throw new MovieEventException("Event type must be CREATED");
+                }
             })
             .then()
             .log("Save director and movie");
@@ -42,17 +48,22 @@ public class DirectorMovieServiceImpl implements DirectorMovieService {
 
     @Override
     public Mono<Void> updateDirectorMovie(DirectorMovieDTO directorMovieDTO) {
-        return Mono.just(directorMovieConsumer.receive())
-            .flatMapMany(movie -> {
-                Mono<Void> deleteExisting = directorMovieRepository.deleteByMovieId(movie.getId());
+        return Mono.just(movieEventConsumer.consumerForDirector())
+            .flatMapMany(movieEvent -> {
+                if (movieEvent.getEventType() == EventType.UPDATED) {
+                    Mono<Void> deleteExisting = directorMovieRepository.deleteByMovieId(movieEvent.getMovieId());
 
-                Flux<DirectorMoviePK> newDirectorMovie = Flux.fromIterable(directorMovieDTO.getDirectorId())
-                        .map(directorId -> new DirectorMoviePK(directorId,movie.getId()));
+                    Flux<DirectorMoviePK> newDirectorMovie = Flux.fromIterable(directorMovieDTO.getDirectorId())
+                            .map(directorId -> new DirectorMoviePK(directorId, movieEvent.getMovieId()));
 
-                return deleteExisting.thenMany(newDirectorMovie)
-                        .collectList()
-                        .flatMapMany(directorMovieRepository::saveAll);
-            }).then();
+                    return deleteExisting.thenMany(newDirectorMovie)
+                            .collectList()
+                            .flatMapMany(directorMovieRepository::saveAll);
+                }else {
+                    throw new MovieEventException("Event type must be UPDATED");
+                }
+            })
+            .then();
     }
 
     @Override
