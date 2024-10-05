@@ -120,4 +120,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error(ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(MovieEventException.class)
+    public ResponseEntity<ErrorResponse> handleMovieEventException(MovieEventException ex) {
+        ErrorResponse response = new ErrorResponse(ex.getMessage());
+        log.error(ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 }
