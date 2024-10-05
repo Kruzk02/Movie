@@ -1,12 +1,14 @@
 package com.app.Service.Impl;
 
 import com.app.DTO.GenreDTO;
+import com.app.Entity.EventType;
 import com.app.Entity.Genre;
 import com.app.Entity.GenreMoviePK;
 import com.app.Entity.Movie;
+import com.app.Expection.MovieEventException;
 import com.app.Repository.GenreMovieRepository;
 import com.app.Service.GenreMovieService;
-import com.app.messaging.consumer.GenreMovieConsumer;
+import com.app.messaging.consumer.MovieEventConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,12 +21,12 @@ import java.util.stream.Collectors;
 public class GenreMovieServiceImpl implements GenreMovieService {
 
     private final GenreMovieRepository genreMovieRepository;
-    private final GenreMovieConsumer genreMovieConsumer;
+    private final MovieEventConsumer movieEventConsumer;
 
     @Autowired
-    public GenreMovieServiceImpl(GenreMovieRepository genreMovieRepository, GenreMovieConsumer genreMovieConsumer) {
+    public GenreMovieServiceImpl(GenreMovieRepository genreMovieRepository, MovieEventConsumer movieEventConsumer) {
         this.genreMovieRepository = genreMovieRepository;
-        this.genreMovieConsumer = genreMovieConsumer;
+        this.movieEventConsumer = movieEventConsumer;
     }
 
     /**
@@ -47,12 +49,17 @@ public class GenreMovieServiceImpl implements GenreMovieService {
      */
     @Override
     public Mono<Void> saveGenreMovie(GenreDTO genreDTO) {
-        return Mono.just(genreMovieConsumer.receive())
-            .flatMapMany(movie -> {
-                Set<GenreMoviePK> genreMovies = genreDTO.getGenreId().stream()
-                    .map(genreId -> new GenreMoviePK(genreId,movie.getId()))
-                    .collect(Collectors.toSet());
-                return genreMovieRepository.saveAll(genreMovies);
+        return Mono.just(movieEventConsumer.consumerForGenre())
+            .filter(movieEvent -> movieEvent.getEventType() == EventType.CREATED)
+            .flatMapMany(movieEvent -> {
+                if (movieEvent.getEventType() == EventType.CREATED) {
+                    Set<GenreMoviePK> genreMovies = genreDTO.getGenreId().stream()
+                            .map(genreId -> new GenreMoviePK(genreId, movieEvent.getMovieId()))
+                            .collect(Collectors.toSet());
+                    return genreMovieRepository.saveAll(genreMovies);
+                }else {
+                    throw new MovieEventException("Event type must be CREATED");
+                }
             })
             .then()
             .log("Save genre and movie");
@@ -60,17 +67,22 @@ public class GenreMovieServiceImpl implements GenreMovieService {
 
     @Override
     public Mono<Void> updateGenreMovie(GenreDTO genreDTO) {
-        return Mono.just(genreMovieConsumer.receive())
-            .flatMapMany(movie -> {
-                Mono<Void> deleteExisting = genreMovieRepository.deleteByMovieId(movie.getId());
+        return Mono.just(movieEventConsumer.consumerForGenre())
+            .flatMapMany(movieEvent -> {
+                if (movieEvent.getEventType() == EventType.UPDATED) {
+                    Mono<Void> deleteExisting = genreMovieRepository.deleteByMovieId(movieEvent.getMovieId());
 
-                Flux<GenreMoviePK> newGenreMovie = Flux.fromIterable(genreDTO.getGenreId())
-                        .map(genreId -> new GenreMoviePK(genreId,movie.getId()));
+                    Flux<GenreMoviePK> newGenreMovie = Flux.fromIterable(genreDTO.getGenreId())
+                            .map(genreId -> new GenreMoviePK(genreId, movieEvent.getMovieId()));
 
-                return deleteExisting.thenMany(newGenreMovie)
-                        .collectList()
-                        .flatMapMany(genreMovieRepository::saveAll);
-            }).then();
+                    return deleteExisting.thenMany(newGenreMovie)
+                            .collectList()
+                            .flatMapMany(genreMovieRepository::saveAll);
+                }else {
+                    throw new MovieEventException("Event type must be UPDATED");
+                }
+            })
+            .then();
     }
 
     /**
