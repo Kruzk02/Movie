@@ -18,9 +18,17 @@ public class RatingHandler {
         this.ratingService = ratingService;
     }
 
-    public Mono<ServerResponse> findById(ServerRequest request){
-        Long id = Long.valueOf(request.pathVariable("id"));
-        return ratingService.findById(id)
+    public Mono<ServerResponse> findAvgRatingByMovieId(ServerRequest request){
+        Long movieId = Long.valueOf(request.pathVariable("movieId"));
+        return ratingService.findAvgRatingByMovieId(movieId)
+                .flatMap(avgRating -> ServerResponse.ok().bodyValue(avgRating))
+                .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    public Mono<ServerResponse> findRatingByMovieIdAndUserId(ServerRequest request){
+        Long movieId = Long.valueOf(request.pathVariable("movieId"));
+        Long userId = request.exchange().getAttribute("userId");
+        return ratingService.findRatingByMovieIdAndUserId(movieId,userId)
                 .flatMap(rating -> ServerResponse.ok().bodyValue(rating))
                 .switchIfEmpty(ServerResponse.notFound().build());
     }
