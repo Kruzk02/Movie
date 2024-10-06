@@ -94,7 +94,8 @@ public class Router {
     @Bean
     public RouterFunction<ServerResponse> ratingRouter(){
         return RouterFunctions
-                .route(GET("/ratings/{id}"),ratingHandler::findById)
+                .route(GET("/ratings/movies/{movieId}"),ratingHandler::findAvgRatingByMovieId)
+                .andRoute(GET("/ratings/movies/{movieId}/users"),ratingHandler::findRatingByMovieIdAndUserId)
                 .andRoute(POST("/ratings"),ratingHandler::save)
                 .andRoute(PUT("/ratings/{id}"),ratingHandler::update)
                 .andRoute(DELETE("/ratings/{id}"),ratingHandler::delete);
