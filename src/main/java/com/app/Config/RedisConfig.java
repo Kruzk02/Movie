@@ -2,7 +2,6 @@ package com.app.Config;
 
 import com.app.Entity.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy;
@@ -16,10 +15,7 @@ import io.lettuce.core.codec.RedisCodec;
 import io.lettuce.core.codec.StringCodec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.*;
 
@@ -82,6 +78,18 @@ public class RedisConfig {
     public ReactiveRedisTemplate<String, MovieMedia> movieMediaReactiveRedisTemplate(
             ReactiveRedisConnectionFactory factory,ObjectMapper objectMapper) {
         return createReactiveRedisTemplate(factory,objectMapper, MovieMedia.class);
+    }
+
+    @Bean
+    public ReactiveRedisTemplate<String, Rating> ratingReactiveRedisTemplate(
+            ReactiveRedisConnectionFactory factory,ObjectMapper objectMapper) {
+        return createReactiveRedisTemplate(factory,objectMapper, Rating.class);
+    }
+
+    @Bean
+    public ReactiveRedisTemplate<String, Double> doubleReactiveRedisTemplate(
+            ReactiveRedisConnectionFactory factory,ObjectMapper objectMapper) {
+        return createReactiveRedisTemplate(factory,objectMapper, Double.class);
     }
 
     private <T> ReactiveRedisTemplate<String, T> createReactiveRedisTemplate(
