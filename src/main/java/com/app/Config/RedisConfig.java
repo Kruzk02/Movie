@@ -87,6 +87,12 @@ public class RedisConfig {
     }
 
     @Bean
+    public ReactiveRedisTemplate<String, Comment> commentReactiveRedisTemplate(
+            ReactiveRedisConnectionFactory factory,ObjectMapper objectMapper) {
+        return createReactiveRedisTemplate(factory,objectMapper, Comment.class);
+    }
+
+    @Bean
     public ReactiveRedisTemplate<String, Double> doubleReactiveRedisTemplate(
             ReactiveRedisConnectionFactory factory,ObjectMapper objectMapper) {
         return createReactiveRedisTemplate(factory,objectMapper, Double.class);
