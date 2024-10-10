@@ -40,6 +40,7 @@ public class DatabaseInitialization {
 //            executeSqlScript("sql/role_privilege.sql");
 //            executeSqlScript("sql/user_role.sql");
 //            executeSqlScript("sql/verification_token.sql");
+//            executeSqlScript("sql/comment.sql");
 //        } catch (Exception e) {
 //            log.error("Error initializing database: {}", e.getMessage());
 //        }
