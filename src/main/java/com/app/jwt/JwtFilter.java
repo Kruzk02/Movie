@@ -28,10 +28,12 @@ public class JwtFilter extends AuthenticationWebFilter {
         String token = extractToken(exchange);
         if (token != null) {
             String username = jwtUtil.validateTokenAndGetUsername(token);
+            String role = jwtUtil.validateTokenAndGetRole(token);
             Long id = jwtUtil.validateTokenAndGetId(token);
             if (username != null) {
                 exchange.getAttributes().put("username",username);
                 exchange.getAttributes().put("userId",id);
+                exchange.getAttributes().put("role",role);
                 return reactiveUserDetailsService.findByUsername(username)
                         .flatMap(userDetails -> {
                             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
