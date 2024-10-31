@@ -43,11 +43,6 @@ public class KafkaConfig {
     }
 
     @Bean
-    public NewTopic userActivityProcessedTopic() {
-        return new NewTopic("user-activity-processed",1, (short) 1);
-    }
-
-    @Bean
     public NewTopic recommendMovieTopic() {
         return new NewTopic("recommend-movie",1, (short) 1);
     }
