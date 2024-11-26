@@ -46,6 +46,7 @@ public class SecurityConfig {
                 .pathMatchers("/users/login", "/users/register").permitAll()
                 .pathMatchers(HttpMethod.GET,"/movies/**","/actors/**","/directors/**","/genres/**").permitAll()
                 .pathMatchers("/movies/**","/actors/**","/directors/**","/genres/**").hasAuthority("WRITE_PRIVILEGE")
+                .pathMatchers("/actuator/**").hasAuthority("WRITE_PRIVILEGE")
                 .anyExchange().authenticated()
             )
             .addFilterAt(rateLimitFilter,SecurityWebFiltersOrder.FIRST)
