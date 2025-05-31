@@ -1,5 +1,6 @@
-package com.app.Entity;
+package com.app.module.actor.entity;
 
+import com.app.Entity.Nationality;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.app.Entity;
+package com.app.module.actor.entity;
 
 import org.springframework.data.relational.core.mapping.Table;
 

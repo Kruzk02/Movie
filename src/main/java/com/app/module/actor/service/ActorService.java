@@ -1,8 +1,7 @@
-package com.app.Service;
+package com.app.module.actor.service;
 
-import com.app.DTO.ActorDTO;
-import com.app.Entity.Actor;
-import org.springframework.http.codec.multipart.FilePart;
+import com.app.module.actor.dto.ActorDTO;
+import com.app.module.actor.entity.Actor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

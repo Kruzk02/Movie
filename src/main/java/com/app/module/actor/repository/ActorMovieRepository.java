@@ -1,7 +1,7 @@
-package com.app.Repository;
+package com.app.module.actor.repository;
 
-import com.app.Entity.Actor;
-import com.app.Entity.ActorMoviePK;
+import com.app.module.actor.entity.Actor;
+import com.app.module.actor.entity.ActorMoviePK;
 import com.app.module.movie.entity.Movie;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;

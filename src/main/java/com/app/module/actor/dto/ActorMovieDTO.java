@@ -1,4 +1,4 @@
-package com.app.DTO;
+package com.app.module.actor.dto;
 
 import java.util.Set;
 

@@ -1,7 +1,7 @@
 package com.app.Router;
 
 import com.app.Handler.*;
-import com.app.module.movie.handler.MovieHandler;
+import com.app.module.actor.handler.ActorHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +16,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class Router {
 
     private final DirectorHandler directorHandler;
-    private final ActorHandler actorHandler;
+
     private final RatingHandler ratingHandler;
     private final GenreHandler genreHandler;
     private final CommentHandler commentHandler;
@@ -39,26 +39,6 @@ public class Router {
                 .andRoute(PUT("/directors/{id}"),directorHandler::update)
                 .andRoute(DELETE("/directors/{id}"),directorHandler::delete);
     }
-
-    /**
-     * Configures the router functions for actor-related endpoints.
-     *
-     * @return A RouterFunction that routes request to the appropriate handler methods.
-     */
-    @Bean
-    public RouterFunction<ServerResponse> actorRouter(){
-        return RouterFunctions
-                .route(GET("/actors"),actorHandler::findAll)
-                .andRoute(GET("/actors/{id}"),actorHandler::findById)
-                .andRoute(GET("/actors/{id}/photo"),actorHandler::getActorPhoto)
-                .andRoute(POST("/actors/movies"),actorHandler::saveActorMovie)
-                .andRoute(PUT("/actors/movies"),actorHandler::updateActorMovie)
-                .andRoute(GET("/actors/{id}/movies"),actorHandler::findMovieByActorId)
-                .andRoute(POST("/actors"),actorHandler::save)
-                .andRoute(PUT("/actors/{id}"),actorHandler::update)
-                .andRoute(DELETE("/actors/{id}"),actorHandler::delete);
-    }
-
 
     /**
      * Configures the router functions for rating-related endpoints.
