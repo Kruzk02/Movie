@@ -1,6 +1,6 @@
 package com.app.module.security;
 
-import com.app.module.Config.RateLimitFilter;
+import com.app.module.config.RateLimitFilter;
 import com.app.module.user.repository.RolePrivilegeRepository;
 import com.app.module.user.repository.UserRepository;
 import com.app.module.user.repository.UserRoleRepository;

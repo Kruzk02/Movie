@@ -3,7 +3,7 @@ package com.app.module.actor.service.impl;
 import com.app.module.actor.dto.ActorDTO;
 import com.app.module.actor.entity.Actor;
 import com.app.Entity.Nationality;
-import com.app.module.Expection.sub.ActorNotFound;
+import com.app.module.expection.sub.ActorNotFound;
 import com.app.module.actor.mapper.ActorMapper;
 import com.app.module.actor.repository.ActorRepository;
 import com.app.module.actor.service.ActorService;

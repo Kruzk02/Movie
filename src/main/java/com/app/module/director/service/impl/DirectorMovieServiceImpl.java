@@ -6,7 +6,7 @@ import com.app.module.director.entity.DirectorMoviePK;
 import com.app.Entity.EventType;
 import com.app.module.director.service.DirectorMovieService;
 import com.app.module.movie.entity.Movie;
-import com.app.module.Expection.sub.MovieEventException;
+import com.app.module.expection.sub.MovieEventException;
 import com.app.module.director.repository.DirectorMovieRepository;
 import com.app.messaging.consumer.MovieEventConsumer;
 import org.springframework.beans.factory.annotation.Autowired;

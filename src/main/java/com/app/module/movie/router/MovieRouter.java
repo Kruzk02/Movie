@@ -1,6 +1,6 @@
 package com.app.module.movie.router;
 
-import com.app.Handler.MovieMediaHandler;
+import com.app.module.movie.handler.MovieMediaHandler;
 import com.app.module.movie.handler.MovieHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
