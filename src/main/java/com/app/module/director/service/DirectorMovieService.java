@@ -1,7 +1,7 @@
-package com.app.Service;
+package com.app.module.director.service;
 
-import com.app.DTO.DirectorMovieDTO;
-import com.app.Entity.Director;
+import com.app.module.director.dto.DirectorMovieDTO;
+import com.app.module.director.entity.Director;
 import com.app.module.movie.entity.Movie;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

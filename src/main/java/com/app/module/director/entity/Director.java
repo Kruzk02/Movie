@@ -1,5 +1,6 @@
-package com.app.Entity;
+package com.app.module.director.entity;
 
+import com.app.Entity.Nationality;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;

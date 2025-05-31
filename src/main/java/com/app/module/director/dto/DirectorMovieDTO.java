@@ -1,4 +1,4 @@
-package com.app.DTO;
+package com.app.module.director.dto;
 
 import java.util.Set;
 

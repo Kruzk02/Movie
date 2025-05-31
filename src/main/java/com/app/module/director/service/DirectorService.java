@@ -1,8 +1,7 @@
-package com.app.Service;
+package com.app.module.director.service;
 
-import com.app.DTO.DirectorDTO;
-import com.app.Entity.Director;
-import org.springframework.http.codec.multipart.FilePart;
+import com.app.module.director.dto.DirectorDTO;
+import com.app.module.director.entity.Director;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

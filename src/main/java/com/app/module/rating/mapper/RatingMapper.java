@@ -1,7 +1,7 @@
-package com.app.Mapper;
+package com.app.module.rating.mapper;
 
-import com.app.DTO.RatingDTO;
-import com.app.Entity.Rating;
+import com.app.module.rating.dto.RatingDTO;
+import com.app.module.rating.entity.Rating;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

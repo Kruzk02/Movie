@@ -1,7 +1,7 @@
-package com.app.Mapper;
+package com.app.module.director.mapper;
 
-import com.app.DTO.DirectorDTO;
-import com.app.Entity.Director;
+import com.app.module.director.dto.DirectorDTO;
+import com.app.module.director.entity.Director;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

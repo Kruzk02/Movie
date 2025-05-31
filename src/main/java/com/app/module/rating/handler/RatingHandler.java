@@ -1,7 +1,7 @@
-package com.app.Handler;
+package com.app.module.rating.handler;
 
-import com.app.DTO.RatingDTO;
-import com.app.Service.RatingService;
+import com.app.module.rating.dto.RatingDTO;
+import com.app.module.rating.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;

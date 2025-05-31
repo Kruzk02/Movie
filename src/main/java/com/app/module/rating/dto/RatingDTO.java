@@ -1,4 +1,4 @@
-package com.app.DTO;
+package com.app.module.rating.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

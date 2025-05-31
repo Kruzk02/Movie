@@ -1,4 +1,4 @@
-package com.app.Entity;
+package com.app.module.rating.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

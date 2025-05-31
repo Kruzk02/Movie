@@ -1,7 +1,7 @@
 package com.app.Router;
 
 import com.app.Handler.*;
-import com.app.module.actor.handler.ActorHandler;
+import com.app.module.rating.handler.RatingHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,45 +15,12 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 @AllArgsConstructor
 public class Router {
 
-    private final DirectorHandler directorHandler;
 
-    private final RatingHandler ratingHandler;
     private final GenreHandler genreHandler;
     private final CommentHandler commentHandler;
 
-    /**
-     * Configures the router functions for director-related endpoints.
-     *
-     * @return A RouterFunction that routes request to the appropriate handler methods.
-     */
-    @Bean
-    public RouterFunction<ServerResponse> directorRouter(){
-        return RouterFunctions
-                .route(GET("/directors"),directorHandler::findAll)
-                .andRoute(GET("/directors/{id}"),directorHandler::findById)
-                .andRoute(GET("/directors/{id}/photo"),directorHandler::getDirectorPhoto)
-                .andRoute(GET("/directors/{id}/movies"),directorHandler::findMovieByDirectorId)
-                .andRoute(POST("/directors/movies"),directorHandler::saveDirectorMovie)
-                .andRoute(PUT("directors/movies"), directorHandler::updateDirectorMovie)
-                .andRoute(POST("/directors"),directorHandler::create)
-                .andRoute(PUT("/directors/{id}"),directorHandler::update)
-                .andRoute(DELETE("/directors/{id}"),directorHandler::delete);
-    }
 
-    /**
-     * Configures the router functions for rating-related endpoints.
-     *
-     * @return A RouterFunction that routes request to the appropriate handler methods.
-     */
-    @Bean
-    public RouterFunction<ServerResponse> ratingRouter(){
-        return RouterFunctions
-                .route(GET("/ratings/movies/{movieId}"),ratingHandler::findAvgRatingByMovieId)
-                .andRoute(GET("/ratings/movies/{movieId}/users"),ratingHandler::findRatingByMovieIdAndUserId)
-                .andRoute(POST("/ratings"),ratingHandler::save)
-                .andRoute(PUT("/ratings/{id}"),ratingHandler::update)
-                .andRoute(DELETE("/ratings/{id}"),ratingHandler::delete);
-    }
+
 
     /**
      * Configures the router functions for genre-related endpoints.

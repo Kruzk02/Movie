@@ -1,11 +1,11 @@
-package com.app.Service.Impl;
+package com.app.module.rating.service.impl;
 
-import com.app.DTO.RatingDTO;
-import com.app.Entity.Rating;
-import com.app.Mapper.RatingMapper;
-import com.app.Repository.RatingRepository;
-import com.app.Service.RatingService;
+import com.app.module.rating.dto.RatingDTO;
+import com.app.module.rating.entity.Rating;
+import com.app.module.rating.mapper.RatingMapper;
+import com.app.module.rating.repository.RatingRepository;
 import com.app.module.Expection.sub.*;
+import com.app.module.rating.service.RatingService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;

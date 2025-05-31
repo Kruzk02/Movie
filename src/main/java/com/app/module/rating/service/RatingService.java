@@ -1,7 +1,7 @@
-package com.app.Service;
+package com.app.module.rating.service;
 
-import com.app.DTO.RatingDTO;
-import com.app.Entity.Rating;
+import com.app.module.rating.dto.RatingDTO;
+import com.app.module.rating.entity.Rating;
 import reactor.core.publisher.Mono;
 
 public interface RatingService {

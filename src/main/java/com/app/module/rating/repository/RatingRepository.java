@@ -1,6 +1,6 @@
-package com.app.Repository;
+package com.app.module.rating.repository;
 
-import com.app.Entity.Rating;
+import com.app.module.rating.entity.Rating;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;

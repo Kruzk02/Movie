@@ -1,8 +1,9 @@
 package com.app.Mapper;
 
-import com.app.DTO.DirectorDTO;
-import com.app.Entity.Director;
+import com.app.module.director.dto.DirectorDTO;
+import com.app.module.director.entity.Director;
 import com.app.Entity.Nationality;
+import com.app.module.director.mapper.DirectorMapper;
 
 import java.time.LocalDate;
 
