@@ -1,7 +1,7 @@
 package com.app.Service.Impl;
 
 import com.app.Entity.Genre;
-import com.app.Expection.GenreNotFound;
+import com.app.module.Expection.sub.GenreNotFound;
 import com.app.Repository.GenreRepository;
 import com.app.Service.GenreService;
 import org.springframework.beans.factory.annotation.Autowired;

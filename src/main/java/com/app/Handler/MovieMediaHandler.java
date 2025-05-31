@@ -1,7 +1,7 @@
 package com.app.Handler;
 
 import com.app.DTO.MovieMediaDTO;
-import com.app.Expection.MovieMediaNotFound;
+import com.app.module.Expection.sub.MovieMediaNotFound;
 import com.app.Service.MovieMediaService;
 import com.app.Service.VideoStreamService;
 import org.apache.commons.lang3.RandomStringUtils;

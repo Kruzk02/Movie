@@ -2,7 +2,7 @@ package com.app.Service.Impl;
 
 import com.app.DTO.MovieDTO;
 import com.app.Entity.*;
-import com.app.Expection.MovieNotFound;
+import com.app.module.Expection.sub.MovieNotFound;
 import com.app.Mapper.MovieMapper;
 import com.app.Repository.*;
 import com.app.Service.MovieService;

@@ -5,7 +5,7 @@ import com.app.Entity.Director;
 import com.app.Entity.DirectorMoviePK;
 import com.app.Entity.EventType;
 import com.app.Entity.Movie;
-import com.app.Expection.MovieEventException;
+import com.app.module.Expection.sub.MovieEventException;
 import com.app.Repository.DirectorMovieRepository;
 import com.app.Service.DirectorMovieService;
 import com.app.messaging.consumer.MovieEventConsumer;

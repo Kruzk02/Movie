@@ -2,7 +2,7 @@ package com.app.Handler;
 
 import com.app.DTO.MovieDTO;
 import com.app.Entity.Movie;
-import com.app.Expection.MovieNotFound;
+import com.app.module.Expection.sub.MovieNotFound;
 import com.app.Service.MovieService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

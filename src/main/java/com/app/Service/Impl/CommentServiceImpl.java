@@ -2,8 +2,8 @@ package com.app.Service.Impl;
 
 import com.app.DTO.CommentDTO;
 import com.app.Entity.Comment;
-import com.app.Expection.CommentNotFoundException;
-import com.app.Expection.CommentNotMatchException;
+import com.app.module.Expection.sub.CommentNotFoundException;
+import com.app.module.Expection.sub.CommentNotMatchException;
 import com.app.Mapper.CommentMapper;
 import com.app.Repository.CommentRepository;
 import com.app.Service.CommentService;
