@@ -1,6 +1,6 @@
 package com.app.messaging.consumer;
 
-import com.app.Entity.MovieEvent;
+import com.app.module.movie.entity.MovieEvent;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 

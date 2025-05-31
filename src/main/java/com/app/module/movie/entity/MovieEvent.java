@@ -1,5 +1,6 @@
-package com.app.Entity;
+package com.app.module.movie.entity;
 
+import com.app.Entity.EventType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

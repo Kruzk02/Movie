@@ -1,7 +1,7 @@
-package com.app.Mapper;
+package com.app.module.movie.mapper;
 
-import com.app.DTO.MovieMediaDTO;
-import com.app.Entity.MovieMedia;
+import com.app.module.movie.dto.MovieMediaDTO;
+import com.app.module.movie.entity.MovieMedia;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

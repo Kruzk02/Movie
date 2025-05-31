@@ -1,6 +1,6 @@
 package com.app.module.Config;
 
-import com.app.Entity.MovieEvent;
+import com.app.module.movie.entity.MovieEvent;
 import com.app.serde.Deserializer.MovieEventDeserializer;
 import com.app.serde.Serializer.MovieEventSerializer;
 import org.apache.kafka.clients.admin.AdminClientConfig;

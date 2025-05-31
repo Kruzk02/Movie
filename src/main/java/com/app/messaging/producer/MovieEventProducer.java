@@ -1,6 +1,6 @@
 package com.app.messaging.producer;
 
-import com.app.Entity.MovieEvent;
+import com.app.module.movie.entity.MovieEvent;
 import com.app.module.Expection.sub.MovieEventException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;

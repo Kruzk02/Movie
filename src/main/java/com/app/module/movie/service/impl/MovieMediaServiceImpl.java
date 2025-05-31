@@ -1,11 +1,11 @@
-package com.app.Service.Impl;
+package com.app.module.movie.service.impl;
 
-import com.app.DTO.MovieMediaDTO;
-import com.app.Entity.MovieMedia;
+import com.app.module.movie.dto.MovieMediaDTO;
+import com.app.module.movie.entity.MovieMedia;
 import com.app.module.Expection.sub.MovieMediaNotFound;
-import com.app.Mapper.MovieMediaMapper;
-import com.app.Repository.MovieMediaRepository;
-import com.app.Service.MovieMediaService;
+import com.app.module.movie.mapper.MovieMediaMapper;
+import com.app.module.movie.repository.MovieMediaRepository;
+import com.app.module.movie.service.MovieMediaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;

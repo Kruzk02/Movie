@@ -1,6 +1,8 @@
 package com.app.module.Config;
 
 import com.app.Entity.*;
+import com.app.module.movie.entity.Movie;
+import com.app.module.movie.entity.MovieMedia;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
