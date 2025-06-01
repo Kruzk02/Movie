@@ -27,8 +27,6 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
 
-import static com.app.constants.AppConstants.ACTOR_PHOTO;
-
 @Component
 public class ActorHandler {
 
@@ -111,7 +109,7 @@ public class ActorHandler {
             actorDTO.setNationality(nationality);
             actorDTO.setPhoto(filename);
 
-            Path path = Paths.get(ACTOR_PHOTO + filename);
+            Path path = Paths.get("actorPhoto/" + filename);
 
             return actorService.save(actorDTO)
                     .flatMap(actor -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)))
@@ -156,7 +154,7 @@ public class ActorHandler {
             actorDTO.setPhoto(filename);
 
             Long id = Long.valueOf(request.pathVariable("id"));
-            Path path = Paths.get(ACTOR_PHOTO+filename);
+            Path path = Paths.get("actorPhoto/"+filename);
             return actorService.update(id,actorDTO)
                     .flatMap(actor -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)))
                     .switchIfEmpty(ServerResponse.notFound().build())

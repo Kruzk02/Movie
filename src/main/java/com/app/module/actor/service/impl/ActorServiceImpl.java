@@ -2,8 +2,8 @@ package com.app.module.actor.service.impl;
 
 import com.app.module.actor.dto.ActorDTO;
 import com.app.module.actor.entity.Actor;
-import com.app.Entity.Nationality;
-import com.app.module.expection.sub.ActorNotFound;
+import com.app.type.Nationality;
+import com.app.expection.sub.ActorNotFound;
 import com.app.module.actor.mapper.ActorMapper;
 import com.app.module.actor.repository.ActorRepository;
 import com.app.module.actor.service.ActorService;
@@ -19,8 +19,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-
-import static com.app.constants.AppConstants.ACTOR_PHOTO;
 
 @Service
 public class ActorServiceImpl implements ActorService {
@@ -78,7 +76,7 @@ public class ActorServiceImpl implements ActorService {
         return actorRepository.findById(id)
             .switchIfEmpty(Mono.error(new ActorNotFound("Actor Not Found")))
             .flatMap(existingActor ->{
-                Path path = Paths.get(ACTOR_PHOTO + existingActor.getPhoto());
+                Path path = Paths.get("actorPhoto/" + existingActor.getPhoto());
                 File file = path.toFile();
 
                 if (file.exists() && file.isFile()) {
@@ -105,7 +103,7 @@ public class ActorServiceImpl implements ActorService {
         return actorRepository.findById(id)
             .switchIfEmpty(Mono.error(new ActorNotFound("Actor not found with id: "+ id)))
             .flatMap(actor -> {
-                Path path = Paths.get(ACTOR_PHOTO + actor.getPhoto());
+                Path path = Paths.get("actorPhoto/" + actor.getPhoto());
                 File file = path.toFile();
                 if (file.exists() && file.isFile()) {
                     file.delete();

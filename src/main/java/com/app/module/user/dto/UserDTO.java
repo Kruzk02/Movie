@@ -1,6 +1,6 @@
 package com.app.module.user.dto;
 
-import com.app.Entity.Nationality;
+import com.app.type.Nationality;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

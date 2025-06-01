@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
-import static com.app.constants.AppConstants.DIRECTOR_PHOTO;
 
 @Component
 public class DirectorHandler {
@@ -107,7 +106,7 @@ public class DirectorHandler {
             directorDTO.setBirthDate(LocalDate.parse(birthDate));
             directorDTO.setPhoto(filename);
 
-            Path path = Paths.get(DIRECTOR_PHOTO + filename);
+            Path path = Paths.get("directorPhoto/" + filename);
             return directorService.save(directorDTO)
                     .flatMap(director -> filePart.transferTo(path)
                             .then(ServerResponse.ok().bodyValue(director)))
@@ -149,7 +148,7 @@ public class DirectorHandler {
             directorDTO.setBirthDate(LocalDate.parse(birthDate));
             directorDTO.setPhoto(filename);
 
-            Path path = Paths.get(DIRECTOR_PHOTO + filename);
+            Path path = Paths.get("directorPhoto/" + filename);
             Long id = Long.valueOf(request.pathVariable("id"));
             return directorService.update(id, directorDTO)
                     .flatMap(director ->

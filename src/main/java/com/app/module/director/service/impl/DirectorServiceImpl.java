@@ -2,8 +2,8 @@ package com.app.module.director.service.impl;
 
 import com.app.module.director.dto.DirectorDTO;
 import com.app.module.director.entity.Director;
-import com.app.Entity.Nationality;
-import com.app.module.expection.sub.DirectorNotFound;
+import com.app.type.Nationality;
+import com.app.expection.sub.DirectorNotFound;
 import com.app.module.director.mapper.DirectorMapper;
 import com.app.module.director.repository.DirectorRepository;
 import com.app.module.director.service.DirectorService;
@@ -17,8 +17,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-
-import static com.app.constants.AppConstants.DIRECTOR_PHOTO;
 
 @Service
 public class DirectorServiceImpl implements DirectorService {
@@ -75,7 +73,7 @@ public class DirectorServiceImpl implements DirectorService {
             .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
             .flatMap(existingDirector ->{
 
-                Path path = Paths.get(DIRECTOR_PHOTO + existingDirector.getPhoto());
+                Path path = Paths.get("directorPhoto/" + existingDirector.getPhoto());
                 File file = path.toFile();
 
                 if (file.exists() && file.isFile()) {
@@ -103,7 +101,7 @@ public class DirectorServiceImpl implements DirectorService {
             .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
             .flatMap(director -> {
 
-                Path path = Paths.get(DIRECTOR_PHOTO + director.getPhoto());
+                Path path = Paths.get("directorPhoto/" + director.getPhoto());
                 File file = path.toFile();
 
                 if (file.exists() && file.isFile()) {

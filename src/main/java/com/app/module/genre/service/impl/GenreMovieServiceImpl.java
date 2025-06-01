@@ -1,12 +1,12 @@
 package com.app.module.genre.service.impl;
 
 import com.app.module.genre.dto.GenreDTO;
-import com.app.Entity.EventType;
+import com.app.type.EventType;
 import com.app.module.genre.entity.Genre;
 import com.app.module.genre.entity.GenreMoviePK;
 import com.app.module.genre.service.GenreMovieService;
 import com.app.module.movie.entity.Movie;
-import com.app.module.expection.sub.MovieEventException;
+import com.app.expection.sub.MovieEventException;
 import com.app.module.genre.repository.GenreMovieRepository;
 import com.app.messaging.consumer.MovieEventConsumer;
 import org.springframework.beans.factory.annotation.Autowired;

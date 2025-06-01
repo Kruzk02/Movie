@@ -2,7 +2,7 @@ package com.app.module.movie.handler;
 
 import com.app.module.movie.dto.MovieDTO;
 import com.app.module.movie.entity.Movie;
-import com.app.module.expection.sub.MovieNotFound;
+import com.app.expection.sub.MovieNotFound;
 import com.app.module.movie.service.MovieService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +25,6 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.app.constants.AppConstants.MOVIE_POSTER;
 
 @Component
 public class MovieHandler {
@@ -106,7 +104,7 @@ public class MovieHandler {
             movieDTO.setSeasons(Byte.parseByte(seasons));
             movieDTO.setPoster(filename);
 
-            Path path = Paths.get(MOVIE_POSTER + filename);
+            Path path = Paths.get("moviePoster/" + filename);
 
             return movieService.save(movieDTO)
                     .flatMap(movie -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie)))
@@ -150,7 +148,7 @@ public class MovieHandler {
             movieDTO.setSeasons(Byte.parseByte(seasons));
             movieDTO.setPoster(filename);
 
-            Path path = Paths.get(MOVIE_POSTER + filename);
+            Path path = Paths.get("moviePoster/" + filename);
 
             return movieService.update(id,movieDTO)
                     .flatMap(movie -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie)))
