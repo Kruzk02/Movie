@@ -1,4 +1,4 @@
-package com.app.module.security;
+package com.app.security;
 
 import com.app.config.RateLimitFilter;
 import com.app.module.user.repository.RolePrivilegeRepository;

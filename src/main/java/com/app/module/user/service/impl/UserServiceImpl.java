@@ -8,7 +8,7 @@ import com.app.module.user.mapper.UserMapper;
 import com.app.module.user.repository.RoleRepository;
 import com.app.module.user.repository.UserRepository;
 import com.app.module.user.repository.UserRoleRepository;
-import com.app.module.security.JwtUtil;
+import com.app.security.JwtUtil;
 import com.app.module.user.service.UserService;
 import jakarta.mail.AuthenticationFailedException;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.app.module.security;
+package com.app.security;
 
 import com.app.module.user.entity.Privilege;
 import com.app.module.user.entity.Role;
