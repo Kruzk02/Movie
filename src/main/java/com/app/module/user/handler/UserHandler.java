@@ -1,7 +1,7 @@
 package com.app.module.user.handler;
 
 import com.app.module.user.dto.UserDTO;
-import com.app.Service.EmailService;
+import com.app.module.user.service.EmailService;
 import com.app.module.user.service.UserService;
 import com.app.module.user.service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
