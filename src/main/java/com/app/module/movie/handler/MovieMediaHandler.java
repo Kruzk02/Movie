@@ -1,9 +1,9 @@
 package com.app.module.movie.handler;
 
+import com.app.Service.VideoStreamService;
 import com.app.module.movie.dto.MovieMediaDTO;
 import com.app.expection.sub.MovieMediaNotFound;
 import com.app.module.movie.service.MovieMediaService;
-import com.app.Service.VideoStreamService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -27,12 +27,10 @@ import java.util.Objects;
 public class MovieMediaHandler {
 
     private final MovieMediaService movieMediaService;
-    private final VideoStreamService videoStreamService;
 
     @Autowired
-    public MovieMediaHandler(MovieMediaService movieMediaService, VideoStreamService videoStreamService) {
+    public MovieMediaHandler(MovieMediaService movieMediaService) {
         this.movieMediaService = movieMediaService;
-        this.videoStreamService = videoStreamService;
     }
 
     public Mono<ServerResponse> findAllByMovieId(ServerRequest request) {
@@ -71,7 +69,7 @@ public class MovieMediaHandler {
         long start = 0;
         long end = 1024 * 1024;
 
-        final long fileSize = videoStreamService.getFileSize(filename);
+        final long fileSize = VideoStreamService.getFileSize(filename);
         if (range == null) {
             return ServerResponse.status(HttpStatus.PARTIAL_CONTENT)
                     .header(HttpHeaders.CONTENT_TYPE,"video/"+extension)
@@ -79,7 +77,7 @@ public class MovieMediaHandler {
                     .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(end))
                     .header(HttpHeaders.CONTENT_RANGE, "bytes" + " " + start + "-" + end + "/" + fileSize)
                     .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileSize))
-                    .bodyValue(videoStreamService.readByteRange(filename,start,end));
+                    .bodyValue(VideoStreamService.readByteRange(filename,start,end));
         }else {
             String[] ranges = range.split("-");
             start = Long.parseLong(ranges[0].substring(6));
@@ -90,7 +88,7 @@ public class MovieMediaHandler {
             }
 
             end = Math.min(end,fileSize - 1);
-            final byte[] data = videoStreamService.readByteRange(filename,start,end);
+            final byte[] data = VideoStreamService.readByteRange(filename,start,end);
             final String contentLength = String.valueOf((end - start) + 1);
             HttpStatus httpStatus = HttpStatus.PARTIAL_CONTENT;
             if (end >= fileSize) {
