@@ -18,8 +18,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-import static com.app.constants.AppConstants.DIRECTOR_PHOTO;
-
 @Service
 public class DirectorServiceImpl implements DirectorService {
 
@@ -75,7 +73,7 @@ public class DirectorServiceImpl implements DirectorService {
             .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
             .flatMap(existingDirector ->{
 
-                Path path = Paths.get(DIRECTOR_PHOTO + existingDirector.getPhoto());
+                Path path = Paths.get("directorPhoto/" + existingDirector.getPhoto());
                 File file = path.toFile();
 
                 if (file.exists() && file.isFile()) {
@@ -103,7 +101,7 @@ public class DirectorServiceImpl implements DirectorService {
             .switchIfEmpty(Mono.error(new DirectorNotFound("Director Not Found with a id: " + id)))
             .flatMap(director -> {
 
-                Path path = Paths.get(DIRECTOR_PHOTO + director.getPhoto());
+                Path path = Paths.get("directorPhoto/" + director.getPhoto());
                 File file = path.toFile();
 
                 if (file.exists() && file.isFile()) {

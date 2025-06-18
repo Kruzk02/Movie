@@ -17,8 +17,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-import static com.app.constants.AppConstants.MOVIE_MEDIA;
-
 @Service
 public class MovieMediaServiceImpl implements MovieMediaService {
 
@@ -95,7 +93,7 @@ public class MovieMediaServiceImpl implements MovieMediaService {
             .switchIfEmpty(Mono.error(new MovieMediaNotFound("Movie media not found")))
             .flatMap(existingMovieMedia -> {
 
-                Path path = Paths.get(MOVIE_MEDIA + existingMovieMedia.getFilePath());
+                Path path = Paths.get("movieMedia/" + existingMovieMedia.getFilePath());
                 File file = path.toFile();
 
                 if (file.exists() && file.isFile()) {
@@ -121,7 +119,7 @@ public class MovieMediaServiceImpl implements MovieMediaService {
     public Mono<Void> delete(Long id) {
         return movieMediaRepository.findById(id)
             .flatMap(movieMedia -> {
-                Path path = Paths.get(MOVIE_MEDIA + movieMedia.getFilePath());
+                Path path = Paths.get("movieMedia/" + movieMedia.getFilePath());
                 File file = path.toFile();
                 if (file.exists() && file.isFile()) {
                     file.delete();

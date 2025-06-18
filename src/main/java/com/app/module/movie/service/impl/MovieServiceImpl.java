@@ -23,8 +23,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 
-import static com.app.constants.AppConstants.MOVIE_POSTER;
-
 @Service
 @AllArgsConstructor
 public class MovieServiceImpl implements MovieService {
@@ -32,7 +30,6 @@ public class MovieServiceImpl implements MovieService {
     private static final Logger log = LogManager.getLogger(MovieServiceImpl.class);
     private final MovieRepository movieRepository;
     private final MovieEventProducer movieEventProducer;
-    private final UserActivityProducer activityProducer;
     private final ReactiveRedisTemplate<String, Movie> redisTemplate;
 
 
@@ -68,7 +65,6 @@ public class MovieServiceImpl implements MovieService {
                             .thenReturn(movie)
                     )
             )
-            .doOnNext(movie -> activityProducer.send(new UserActivity(userId,movie)))
             .doOnError(e -> log.error("Error fetching a movie with id: {} ", id, e))
             .log("Find movie with id: " + id);
     }
@@ -128,7 +124,7 @@ public class MovieServiceImpl implements MovieService {
             .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with id: " + id)))
             .flatMap(existingMovie -> {
 
-                    Path path = Paths.get(MOVIE_POSTER + existingMovie.getPoster());
+                    Path path = Paths.get("moviePoster/" + existingMovie.getPoster());
                     File file = path.toFile();
                     if (file.exists() && file.isFile()) {
                         file.delete();
@@ -161,7 +157,7 @@ public class MovieServiceImpl implements MovieService {
         return movieRepository.findById(id)
             .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
             .flatMap(movie -> {
-                Path path = Paths.get(MOVIE_POSTER + movie.getPoster());
+                Path path = Paths.get("moviePoster/" + movie.getPoster());
                 File file = path.toFile();
                 if (file.exists() && file.isFile()) {
                     file.delete();

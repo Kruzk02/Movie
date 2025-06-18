@@ -23,8 +23,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.app.constants.AppConstants.MOVIE_MEDIA;
-
 @Component
 public class MovieMediaHandler {
 
@@ -140,7 +138,7 @@ public class MovieMediaHandler {
             movieMediaDTO.setQuality(quality);
             movieMediaDTO.setVideo(filename);
 
-            Path path = Paths.get(MOVIE_MEDIA + filename);
+            Path path = Paths.get("movieMedia/" + filename);
 
             return movieMediaService.save(movieMediaDTO)
                     .flatMap(movieMedia -> filePart.transferTo(path).then(ServerResponse.status(HttpStatus.CREATED).bodyValue(movieMedia)))
@@ -183,7 +181,7 @@ public class MovieMediaHandler {
             movieMediaDTO.setQuality(quality);
             movieMediaDTO.setVideo(filename);
 
-            Path path = Paths.get(MOVIE_MEDIA + filename);
+            Path path = Paths.get("movieMedia/" + filename);
 
             return movieMediaService.update(id,movieMediaDTO)
                     .flatMap(movieMedia -> filePart.transferTo(path).then(ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(movieMedia)))
