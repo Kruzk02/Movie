@@ -3,7 +3,7 @@ package com.app.Handler;
 import com.app.DTO.ActorDTO;
 import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
-import module.movie.entity.Movie;
+import com.app.module.movie.entity.Movie;
 import com.app.Service.ActorMovieService;
 import com.app.Service.ActorService;
 import org.apache.commons.lang3.RandomStringUtils;

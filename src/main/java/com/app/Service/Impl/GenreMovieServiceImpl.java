@@ -4,7 +4,7 @@ import com.app.DTO.GenreDTO;
 import com.app.Entity.EventType;
 import com.app.Entity.Genre;
 import com.app.Entity.GenreMoviePK;
-import module.movie.entity.Movie;
+import com.app.module.movie.entity.Movie;
 import com.app.Expection.MovieEventException;
 import com.app.Repository.GenreMovieRepository;
 import com.app.Service.GenreMovieService;

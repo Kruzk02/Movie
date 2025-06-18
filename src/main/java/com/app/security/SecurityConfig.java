@@ -1,9 +1,9 @@
 package com.app.security;
 
 import com.app.Config.RateLimitFilter;
-import module.user.repository.RolePrivilegeRepository;
-import module.user.repository.UserRepository;
-import module.user.repository.UserRoleRepository;
+import com.app.module.user.repository.RolePrivilegeRepository;
+import com.app.module.user.repository.UserRepository;
+import com.app.module.user.repository.UserRoleRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

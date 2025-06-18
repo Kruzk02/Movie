@@ -1,6 +1,6 @@
 package com.app.messaging.consumer;
 
-import module.movie.entity.Movie;
+import com.app.module.movie.entity.Movie;
 import com.app.Entity.UserActivity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;

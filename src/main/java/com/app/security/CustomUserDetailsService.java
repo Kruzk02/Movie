@@ -1,10 +1,10 @@
 package com.app.security;
 
-import module.user.entity.Privilege;
-import module.user.entity.Role;
-import module.user.repository.RolePrivilegeRepository;
-import module.user.repository.UserRepository;
-import module.user.repository.UserRoleRepository;
+import com.app.module.user.entity.Privilege;
+import com.app.module.user.entity.Role;
+import com.app.module.user.repository.RolePrivilegeRepository;
+import com.app.module.user.repository.UserRepository;
+import com.app.module.user.repository.UserRoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

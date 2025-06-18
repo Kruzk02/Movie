@@ -2,9 +2,9 @@ package com.app.Router;
 
 import com.app.Handler.*;
 import lombok.AllArgsConstructor;
-import module.movie.handler.MovieHandler;
-import module.movie.handler.MovieMediaHandler;
-import module.user.handler.UserHandler;
+import com.app.module.movie.handler.MovieHandler;
+import com.app.module.movie.handler.MovieMediaHandler;
+import com.app.module.user.handler.UserHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
