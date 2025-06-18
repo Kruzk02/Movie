@@ -3,7 +3,7 @@ package com.app.module.director.service.impl;
 import com.app.module.director.dto.DirectorMovieDTO;
 import com.app.module.director.entity.Director;
 import com.app.module.director.entity.DirectorMoviePK;
-import com.app.Entity.EventType;
+import com.app.messaging.event.EventType;
 import com.app.module.movie.entity.Movie;
 import com.app.Expection.MovieEventException;
 import com.app.module.director.repository.DirectorMovieRepository;

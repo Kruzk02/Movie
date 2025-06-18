@@ -3,7 +3,7 @@ package com.app.module.actor.service.impl;
 import com.app.module.actor.dto.ActorMovieDTO;
 import com.app.module.actor.entity.Actor;
 import com.app.module.actor.entity.ActorMoviePK;
-import com.app.Entity.EventType;
+import com.app.messaging.event.EventType;
 import com.app.module.movie.entity.Movie;
 import com.app.Expection.MovieEventException;
 import com.app.module.actor.repository.ActorMovieRepository;

@@ -1,6 +1,6 @@
 package com.app.Config;
 
-import com.app.Entity.MovieEvent;
+import com.app.messaging.event.MovieEvent;
 import com.app.serde.Deserializer.MovieEventDeserializer;
 import com.app.serde.Serializer.MovieEventSerializer;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -35,16 +35,6 @@ public class KafkaConfig {
     @Bean
     public NewTopic movieEventTopic() {
         return new NewTopic("movie-event",1, (short) 1);
-    }
-
-    @Bean
-    public NewTopic userActivityInputTopic() {
-        return new NewTopic("user-activity-input",1, (short) 1);
-    }
-
-    @Bean
-    public NewTopic recommendMovieTopic() {
-        return new NewTopic("recommend-movie",1, (short) 1);
     }
 
     private ProducerFactory<Long, byte[]> producerFactory() {
@@ -100,22 +90,6 @@ public class KafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<Long, MovieEvent> directorKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<Long, MovieEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(movieEventconsumerFactory("director-group"));
-        return factory;
-    }
-
-    private ConsumerFactory<Long, byte[]> recommendMovieConsumerFactory() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "recommend-movie-group");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, MovieEventDeserializer.class);
-        return new DefaultKafkaConsumerFactory<>(props);
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<Long, byte[]> recommendMovieKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<Long, byte[]> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(recommendMovieConsumerFactory());
         return factory;
     }
 }

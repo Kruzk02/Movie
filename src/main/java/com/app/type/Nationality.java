@@ -1,4 +1,4 @@
-package com.app.Entity;
+package com.app.type;
 
 public enum Nationality {
     USA

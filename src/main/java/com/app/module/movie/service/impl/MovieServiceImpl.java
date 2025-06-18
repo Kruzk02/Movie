@@ -1,12 +1,12 @@
 package com.app.module.movie.service.impl;
 
+import com.app.messaging.event.EventType;
+import com.app.messaging.event.MovieEvent;
 import com.app.module.movie.dto.MovieDTO;
-import com.app.Entity.*;
 import com.app.Expection.MovieNotFound;
 import com.app.module.movie.mapper.MovieMapper;
 import com.app.module.movie.service.MovieService;
 import com.app.messaging.producer.MovieEventProducer;
-import com.app.messaging.producer.UserActivityProducer;
 import lombok.AllArgsConstructor;
 import com.app.module.movie.entity.Movie;
 import com.app.module.movie.repository.MovieRepository;
@@ -112,7 +112,7 @@ public class MovieServiceImpl implements MovieService {
                         .set("movie:"+savedMovie.getId(),movie,Duration.ofHours(24))
                         .thenReturn(savedMovie)
                 )
-                .doOnSuccess(savedMovie -> movieEventProducer.send(new MovieEvent(savedMovie.getId(),EventType.CREATED,Instant.now())))
+                .doOnSuccess(savedMovie -> movieEventProducer.send(new MovieEvent(savedMovie.getId(), EventType.CREATED,Instant.now())))
                 .log("Save a new movie: " + movie);
     }
 

@@ -1,4 +1,4 @@
-package com.app.Entity;
+package com.app.messaging.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

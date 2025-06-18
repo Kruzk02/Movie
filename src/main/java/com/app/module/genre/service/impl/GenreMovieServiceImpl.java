@@ -1,7 +1,7 @@
 package com.app.module.genre.service.impl;
 
 import com.app.module.genre.dto.GenreDTO;
-import com.app.Entity.EventType;
+import com.app.messaging.event.EventType;
 import com.app.module.genre.entity.Genre;
 import com.app.module.genre.entity.GenreMoviePK;
 import com.app.module.movie.entity.Movie;

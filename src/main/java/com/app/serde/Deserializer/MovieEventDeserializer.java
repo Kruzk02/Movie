@@ -1,6 +1,6 @@
 package com.app.serde.Deserializer;
 
-import com.app.Entity.MovieEvent;
+import com.app.messaging.event.MovieEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.kafka.common.serialization.Deserializer;

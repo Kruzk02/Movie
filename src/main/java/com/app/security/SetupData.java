@@ -1,8 +1,8 @@
 package com.app.security;
 
-import com.app.Entity.*;
 import com.app.module.user.entity.*;
 import com.app.module.user.repository.*;
+import com.app.type.Nationality;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
