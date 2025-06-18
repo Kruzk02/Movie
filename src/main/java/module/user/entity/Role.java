@@ -1,24 +1,24 @@
-package com.app.Entity;
+package module.user.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table("privilege")
-public class Privilege {
+@Table("role")
+public class Role {
 
     @Id
     private Long id;
     private String name;
 
-    public Privilege() {
+    public Role() {
     }
 
-    public Privilege(Long id, String name) {
+    public Role(Long id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public Privilege(String name) {
+    public Role(String name) {
         this.name = name;
     }
 

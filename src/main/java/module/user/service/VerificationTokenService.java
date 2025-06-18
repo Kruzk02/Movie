@@ -1,6 +1,6 @@
-package com.app.Service;
+package module.user.service;
 
-import com.app.Entity.VerificationToken;
+import module.user.entity.VerificationToken;
 import reactor.core.publisher.Mono;
 
 public interface VerificationTokenService {

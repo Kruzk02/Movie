@@ -1,15 +1,15 @@
-package com.app.Service.Impl;
+package module.user.service.impl;
 
-import com.app.DTO.UserDTO;
-import com.app.Entity.User;
-import com.app.Entity.UserRolePK;
+import module.user.dto.UserDTO;
+import module.user.entity.User;
+import module.user.entity.UserRolePK;
 import com.app.Expection.*;
-import com.app.Mapper.UserMapper;
-import com.app.Repository.RoleRepository;
-import com.app.Repository.UserRepository;
-import com.app.Repository.UserRoleRepository;
-import com.app.Service.UserService;
-import com.app.jwt.JwtUtil;
+import module.user.mapper.UserMapper;
+import module.user.repository.RoleRepository;
+import module.user.repository.UserRepository;
+import module.user.repository.UserRoleRepository;
+import module.user.service.UserService;
+import com.app.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

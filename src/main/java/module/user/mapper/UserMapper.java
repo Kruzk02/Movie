@@ -1,7 +1,7 @@
-package com.app.Mapper;
+package module.user.mapper;
 
-import com.app.DTO.UserDTO;
-import com.app.Entity.User;
+import module.user.dto.UserDTO;
+import module.user.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

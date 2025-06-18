@@ -1,6 +1,6 @@
-package com.app.Repository;
+package module.user.repository;
 
-import com.app.Entity.VerificationToken;
+import module.user.entity.VerificationToken;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;
 

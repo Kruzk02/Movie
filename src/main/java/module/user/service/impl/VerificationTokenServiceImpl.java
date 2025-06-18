@@ -1,10 +1,10 @@
-package com.app.Service.Impl;
+package module.user.service.impl;
 
-import com.app.Entity.VerificationToken;
+import module.user.entity.VerificationToken;
 import com.app.Expection.InvalidTokenException;
-import com.app.Repository.UserRepository;
-import com.app.Repository.VerificationTokenRepository;
-import com.app.Service.VerificationTokenService;
+import module.user.repository.UserRepository;
+import module.user.repository.VerificationTokenRepository;
+import module.user.service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;

@@ -1,9 +1,9 @@
-package com.app.Handler;
+package module.user.handler;
 
-import com.app.DTO.UserDTO;
+import module.user.dto.UserDTO;
 import com.app.Service.EmailService;
-import com.app.Service.UserService;
-import com.app.Service.VerificationTokenService;
+import module.user.service.UserService;
+import module.user.service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

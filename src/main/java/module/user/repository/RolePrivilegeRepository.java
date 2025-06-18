@@ -1,7 +1,7 @@
-package com.app.Repository;
+package module.user.repository;
 
-import com.app.Entity.Privilege;
-import com.app.Entity.RolePrivilegePK;
+import module.user.entity.Privilege;
+import module.user.entity.RolePrivilegePK;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;

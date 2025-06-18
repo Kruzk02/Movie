@@ -1,6 +1,6 @@
-package com.app.Repository;
+package module.user.repository;
 
-import com.app.Entity.User;
+import module.user.entity.User;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;

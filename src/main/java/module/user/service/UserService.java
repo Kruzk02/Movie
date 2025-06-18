@@ -1,7 +1,7 @@
-package com.app.Service;
+package module.user.service;
 
-import com.app.DTO.UserDTO;
-import com.app.Entity.User;
+import module.user.dto.UserDTO;
+import module.user.entity.User;
 import reactor.core.publisher.Mono;
 
 public interface UserService {

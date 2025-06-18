@@ -1,4 +1,4 @@
-package com.app.DTO;
+package module.user.dto;
 
 import com.app.Entity.Nationality;
 import lombok.AllArgsConstructor;
