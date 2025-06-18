@@ -2,7 +2,7 @@ package com.app.Handler;
 
 import com.app.DTO.GenreDTO;
 import com.app.Entity.Genre;
-import com.app.Entity.Movie;
+import module.movie.entity.Movie;
 import com.app.Service.GenreMovieService;
 import com.app.Service.GenreService;
 import org.springframework.beans.factory.annotation.Autowired;

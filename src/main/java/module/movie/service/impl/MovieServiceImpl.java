@@ -1,14 +1,15 @@
-package com.app.Service.Impl;
+package module.movie.service.impl;
 
-import com.app.DTO.MovieDTO;
+import module.movie.dto.MovieDTO;
 import com.app.Entity.*;
 import com.app.Expection.MovieNotFound;
-import com.app.Mapper.MovieMapper;
-import com.app.Repository.*;
-import com.app.Service.MovieService;
+import module.movie.mapper.MovieMapper;
+import module.movie.service.MovieService;
 import com.app.messaging.producer.MovieEventProducer;
 import com.app.messaging.producer.UserActivityProducer;
 import lombok.AllArgsConstructor;
+import module.movie.entity.Movie;
+import module.movie.repository.MovieRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -32,7 +33,7 @@ public class MovieServiceImpl implements MovieService {
     private final MovieRepository movieRepository;
     private final MovieEventProducer movieEventProducer;
     private final UserActivityProducer activityProducer;
-    private final ReactiveRedisTemplate<String,Movie> redisTemplate;
+    private final ReactiveRedisTemplate<String, Movie> redisTemplate;
 
 
     /**

@@ -2,7 +2,7 @@ package com.app.Repository;
 
 import com.app.Entity.Director;
 import com.app.Entity.DirectorMoviePK;
-import com.app.Entity.Movie;
+import module.movie.entity.Movie;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;

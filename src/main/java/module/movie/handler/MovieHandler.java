@@ -1,9 +1,9 @@
-package com.app.Handler;
+package module.movie.handler;
 
-import com.app.DTO.MovieDTO;
-import com.app.Entity.Movie;
+import module.movie.dto.MovieDTO;
+import module.movie.entity.Movie;
 import com.app.Expection.MovieNotFound;
-import com.app.Service.MovieService;
+import module.movie.service.MovieService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;

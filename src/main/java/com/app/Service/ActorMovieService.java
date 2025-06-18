@@ -2,8 +2,7 @@ package com.app.Service;
 
 import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
-import com.app.Entity.ActorMoviePK;
-import com.app.Entity.Movie;
+import module.movie.entity.Movie;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

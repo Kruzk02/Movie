@@ -1,8 +1,7 @@
-package com.app.Service;
+package module.movie.service;
 
-import com.app.DTO.MovieMediaDTO;
-import com.app.Entity.MovieMedia;
-import org.springframework.http.codec.multipart.FilePart;
+import module.movie.dto.MovieMediaDTO;
+import module.movie.entity.MovieMedia;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

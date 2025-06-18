@@ -1,4 +1,4 @@
-package com.app.Entity;
+package module.movie.entity;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;

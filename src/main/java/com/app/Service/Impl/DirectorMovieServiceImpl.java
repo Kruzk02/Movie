@@ -4,7 +4,7 @@ import com.app.DTO.DirectorMovieDTO;
 import com.app.Entity.Director;
 import com.app.Entity.DirectorMoviePK;
 import com.app.Entity.EventType;
-import com.app.Entity.Movie;
+import module.movie.entity.Movie;
 import com.app.Expection.MovieEventException;
 import com.app.Repository.DirectorMovieRepository;
 import com.app.Service.DirectorMovieService;

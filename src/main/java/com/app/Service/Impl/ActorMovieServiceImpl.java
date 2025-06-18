@@ -4,7 +4,7 @@ import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
 import com.app.Entity.ActorMoviePK;
 import com.app.Entity.EventType;
-import com.app.Entity.Movie;
+import module.movie.entity.Movie;
 import com.app.Expection.MovieEventException;
 import com.app.Repository.ActorMovieRepository;
 import com.app.Service.ActorMovieService;

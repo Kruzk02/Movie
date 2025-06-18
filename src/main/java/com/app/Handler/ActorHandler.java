@@ -3,7 +3,7 @@ package com.app.Handler;
 import com.app.DTO.ActorDTO;
 import com.app.DTO.ActorMovieDTO;
 import com.app.Entity.Actor;
-import com.app.Entity.Movie;
+import module.movie.entity.Movie;
 import com.app.Service.ActorMovieService;
 import com.app.Service.ActorService;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -22,13 +22,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 import static com.app.constants.AppConstants.ACTOR_PHOTO;
 

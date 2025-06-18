@@ -1,7 +1,7 @@
-package com.app.Service;
+package module.movie.service;
 
-import com.app.DTO.MovieDTO;
-import com.app.Entity.Movie;
+import module.movie.dto.MovieDTO;
+import module.movie.entity.Movie;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

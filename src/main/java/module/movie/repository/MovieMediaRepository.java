@@ -1,6 +1,6 @@
-package com.app.Repository;
+package module.movie.repository;
 
-import com.app.Entity.MovieMedia;
+import module.movie.entity.MovieMedia;
 import org.springframework.data.r2dbc.repository.Modifying;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.Param;

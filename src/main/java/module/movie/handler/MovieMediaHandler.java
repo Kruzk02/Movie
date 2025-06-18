@@ -1,8 +1,8 @@
-package com.app.Handler;
+package module.movie.handler;
 
-import com.app.DTO.MovieMediaDTO;
+import module.movie.dto.MovieMediaDTO;
 import com.app.Expection.MovieMediaNotFound;
-import com.app.Service.MovieMediaService;
+import module.movie.service.MovieMediaService;
 import com.app.Service.VideoStreamService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
