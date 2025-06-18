@@ -2,6 +2,7 @@ package com.app.Config;
 
 import com.app.Entity.*;
 import com.app.module.actor.entity.Actor;
+import com.app.module.director.entity.Director;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;

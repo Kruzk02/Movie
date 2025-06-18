@@ -1,13 +1,12 @@
-package com.app.Service.Impl;
+package com.app.module.director.service.impl;
 
-import com.app.DTO.DirectorDTO;
-import com.app.Entity.Director;
+import com.app.module.director.dto.DirectorDTO;
+import com.app.module.director.entity.Director;
 import com.app.Entity.Nationality;
 import com.app.Expection.DirectorNotFound;
-import com.app.Mapper.DirectorMapper;
-import com.app.Repository.DirectorRepository;
-import com.app.Service.DirectorService;
-import com.app.Service.FileService;
+import com.app.module.director.mapper.DirectorMapper;
+import com.app.module.director.repository.DirectorRepository;
+import com.app.module.director.service.DirectorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;

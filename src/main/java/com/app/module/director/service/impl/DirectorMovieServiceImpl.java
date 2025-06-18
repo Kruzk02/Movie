@@ -1,13 +1,13 @@
-package com.app.Service.Impl;
+package com.app.module.director.service.impl;
 
-import com.app.DTO.DirectorMovieDTO;
-import com.app.Entity.Director;
-import com.app.Entity.DirectorMoviePK;
+import com.app.module.director.dto.DirectorMovieDTO;
+import com.app.module.director.entity.Director;
+import com.app.module.director.entity.DirectorMoviePK;
 import com.app.Entity.EventType;
 import com.app.module.movie.entity.Movie;
 import com.app.Expection.MovieEventException;
-import com.app.Repository.DirectorMovieRepository;
-import com.app.Service.DirectorMovieService;
+import com.app.module.director.repository.DirectorMovieRepository;
+import com.app.module.director.service.DirectorMovieService;
 import com.app.messaging.consumer.MovieEventConsumer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
