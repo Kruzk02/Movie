@@ -1,7 +1,7 @@
-package com.app.Mapper;
+package com.app.module.actor.mapper;
 
-import com.app.DTO.ActorDTO;
-import com.app.Entity.Actor;
+import com.app.module.actor.dto.ActorDTO;
+import com.app.module.actor.entity.Actor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

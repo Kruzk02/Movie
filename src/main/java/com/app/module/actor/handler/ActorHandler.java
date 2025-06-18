@@ -1,11 +1,11 @@
-package com.app.Handler;
+package com.app.module.actor.handler;
 
-import com.app.DTO.ActorDTO;
-import com.app.DTO.ActorMovieDTO;
-import com.app.Entity.Actor;
+import com.app.module.actor.dto.ActorDTO;
+import com.app.module.actor.dto.ActorMovieDTO;
+import com.app.module.actor.entity.Actor;
 import com.app.module.movie.entity.Movie;
-import com.app.Service.ActorMovieService;
-import com.app.Service.ActorService;
+import com.app.module.actor.service.ActorMovieService;
+import com.app.module.actor.service.ActorService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;

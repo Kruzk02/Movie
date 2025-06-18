@@ -1,6 +1,7 @@
 package com.app.Router;
 
 import com.app.Handler.*;
+import com.app.module.actor.handler.ActorHandler;
 import lombok.AllArgsConstructor;
 import com.app.module.movie.handler.MovieHandler;
 import com.app.module.movie.handler.MovieMediaHandler;

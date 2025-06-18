@@ -1,18 +1,16 @@
-package com.app.Service.Impl;
+package com.app.module.actor.service.impl;
 
-import com.app.DTO.ActorDTO;
-import com.app.Entity.Actor;
+import com.app.module.actor.dto.ActorDTO;
+import com.app.module.actor.entity.Actor;
 import com.app.Entity.Nationality;
 import com.app.Expection.ActorNotFound;
-import com.app.Mapper.ActorMapper;
-import com.app.Repository.ActorRepository;
-import com.app.Service.ActorService;
-import com.app.Service.FileService;
+import com.app.module.actor.mapper.ActorMapper;
+import com.app.module.actor.repository.ActorRepository;
+import com.app.module.actor.service.ActorService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
