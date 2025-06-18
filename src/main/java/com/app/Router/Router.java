@@ -1,8 +1,10 @@
 package com.app.Router;
 
-import com.app.Handler.*;
 import com.app.module.actor.handler.ActorHandler;
+import com.app.module.comment.handler.CommentHandler;
 import com.app.module.director.handler.DirectorHandler;
+import com.app.module.genre.handler.GenreHandler;
+import com.app.module.rating.handler.RatingHandler;
 import lombok.AllArgsConstructor;
 import com.app.module.movie.handler.MovieHandler;
 import com.app.module.movie.handler.MovieMediaHandler;

@@ -1,8 +1,10 @@
 package com.app.Config;
 
-import com.app.Entity.*;
 import com.app.module.actor.entity.Actor;
+import com.app.module.comment.entity.Comment;
 import com.app.module.director.entity.Director;
+import com.app.module.genre.entity.Genre;
+import com.app.module.rating.entity.Rating;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BucketConfiguration;
