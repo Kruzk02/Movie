@@ -1,4 +1,4 @@
-package com.app.Service;
+package com.app.module.movie.service;
 
 
 public interface VideoStreamService {

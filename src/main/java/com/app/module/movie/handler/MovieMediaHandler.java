@@ -3,7 +3,7 @@ package com.app.module.movie.handler;
 import com.app.module.movie.dto.MovieMediaDTO;
 import com.app.Expection.MovieMediaNotFound;
 import com.app.module.movie.service.MovieMediaService;
-import com.app.Service.VideoStreamService;
+import com.app.module.movie.service.VideoStreamService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;

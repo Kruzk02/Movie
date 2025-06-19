@@ -1,6 +1,6 @@
-package com.app.Service.Impl;
+package com.app.module.movie.service.impl;
 
-import com.app.Service.VideoStreamService;
+import com.app.module.movie.service.VideoStreamService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.core.io.FileSystemResource;
