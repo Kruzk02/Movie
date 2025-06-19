@@ -53,12 +53,12 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .switchIfEmpty(Mono.error(new UserNotFound("User not found with a id: " + id)))
                 .flatMap(existingUser -> {
-                    existingUser.setUsername(userDTO.getUsername());
-                    existingUser.setEmail(userDTO.getEmail());
-                    existingUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-                    existingUser.setNationality(userDTO.getNationality());
-                    existingUser.setPhoneNumber(userDTO.getPhoneNumber());
-                    existingUser.setBirthDate(userDTO.getBirthDate());
+                    existingUser.setUsername(userDTO.username());
+                    existingUser.setEmail(userDTO.email());
+                    existingUser.setPassword(passwordEncoder.encode(userDTO.password()));
+                    existingUser.setNationality(userDTO.nationality());
+                    existingUser.setPhoneNumber(userDTO.phoneNumber());
+                    existingUser.setBirthDate(userDTO.birthDate());
 
                     return userRepository.save(existingUser);
                 })
@@ -68,23 +68,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<String> login(UserDTO userDTO) {
         return reactiveAuthenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                        userDTO.getUsername(), userDTO.getPassword()
+                        userDTO.username(), userDTO.password()
                 ))
                 .doOnNext(ReactiveSecurityContextHolder::withAuthentication)
-                .flatMap(authentication -> userRepository.findByUsername(userDTO.getUsername())
+                .flatMap(authentication -> userRepository.findByUsername(userDTO.username())
                     .flatMap(user -> userRoleRepository.findRoleByUsername(user.getUsername())
                             .map(role -> jwtUtil.generateToken(user.getUsername(),user.getId(), role.getName()))))
                 .onErrorResume(ex -> Mono.error(new UserNotExistingException("User not existing " + ex.getMessage())))
-                .doOnNext(token -> System.out.println("Login with a username: " + userDTO.getUsername() + ", token: " + token));
+                .doOnNext(token -> System.out.println("Login with a username: " + userDTO.username() + ", token: " + token));
     }
 
     @Override
     public Mono<User> register(UserDTO userDTO) {
-        return checkUsernameExist(userDTO.getUsername())
-                .then(checkEmailExist(userDTO.getEmail()))
+        return checkUsernameExist(userDTO.username())
+                .then(checkEmailExist(userDTO.email()))
                 .then(Mono.defer(() -> {
                     User user = UserMapper.INSTANCE.mapDTOToEntity(userDTO);
-                    user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+                    user.setPassword(passwordEncoder.encode(userDTO.password()));
                     user.setEnabled(false);
 
                     if (!validateEmail(user.getEmail())){
