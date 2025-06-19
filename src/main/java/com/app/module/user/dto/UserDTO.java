@@ -8,15 +8,11 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class UserDTO {
-    private String username;
-    private String email;
-    private String password;
-    private String phoneNumber;
-    private Nationality nationality;
-    private LocalDate birthDate;
-}
+public record UserDTO (
+        String username,
+        String email,
+        String password,
+        String phoneNumber,
+        Nationality nationality,
+        LocalDate birthDate
+) {}
