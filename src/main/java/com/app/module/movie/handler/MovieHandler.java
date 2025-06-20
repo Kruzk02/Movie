@@ -75,39 +75,24 @@ public class MovieHandler {
             Map<String, Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key, value) -> System.out.println("Part: " + key + " -> " + value));
 
-            FilePart filePart = (FilePart) partMap.get("poster");
+            var filePart = (FilePart) partMap.get("poster");
             if (filePart == null) {
                 return Mono.error(new IllegalArgumentException("Poster file is missing"));
             }
 
-            String title = getFormFieldValue(partMap,"title");
-            String release_year = getFormFieldValue(partMap,"release_year");
-            String description = getFormFieldValue(partMap,"description");
-            String seasons = getFormFieldValue(partMap,"seasons");
+            var title = getFormFieldValue(partMap,"title");
+            var release_year = getFormFieldValue(partMap,"release_year");
+            var description = getFormFieldValue(partMap,"description");
+            var seasons = getFormFieldValue(partMap,"seasons");
 
             if (title == null || release_year == null || description == null || seasons == null) {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
-            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = filePart.filename().substring(lastIndexOfDot);
-            }
-            String filename = RandomStringUtils.randomAlphabetic(15);
-            filename = filename + extension.replaceAll("[(){}]", "");
-
-            MovieDTO movieDTO = new MovieDTO();
-            movieDTO.setTitle(title);
-            movieDTO.setDescription(description);
-            movieDTO.setReleaseYear(LocalDate.parse(release_year));
-            movieDTO.setSeasons(Byte.parseByte(seasons));
-            movieDTO.setPoster(filename);
-
-            Path path = Paths.get("moviePoster/" + filename);
+            var movieDTO = new MovieDTO(title, LocalDate.parse(release_year), description, Byte.parseByte(seasons), filePart);
 
             return movieService.save(movieDTO)
-                    .flatMap(movie -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie)))
+                    .flatMap(movie -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie: " + e.getMessage()));
         });
     }
@@ -122,36 +107,19 @@ public class MovieHandler {
                 return Mono.error(new IllegalArgumentException("Poster file is missing"));
             }
 
-            String title = getFormFieldValue(partMap,"title");
-            String release_year = getFormFieldValue(partMap,"release_year");
-            String description = getFormFieldValue(partMap,"description");
-            String seasons = getFormFieldValue(partMap,"seasons");
+            var title = getFormFieldValue(partMap,"title");
+            var release_year = getFormFieldValue(partMap,"release_year");
+            var description = getFormFieldValue(partMap,"description");
+            var seasons = getFormFieldValue(partMap,"seasons");
 
             if (title == null || release_year == null || description == null || seasons == null) {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
-
-            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = filePart.filename().substring(lastIndexOfDot);
-            }
-            String filename = RandomStringUtils.randomAlphabetic(15);
-            filename = filename + extension.replaceAll("[(){}]", "");
-
-            Long id = Long.valueOf(request.pathVariable("id"));
-
-            MovieDTO movieDTO = new MovieDTO();
-            movieDTO.setTitle(title);
-            movieDTO.setDescription(description);
-            movieDTO.setReleaseYear(LocalDate.parse(release_year));
-            movieDTO.setSeasons(Byte.parseByte(seasons));
-            movieDTO.setPoster(filename);
-
-            Path path = Paths.get("moviePoster/" + filename);
+            var id = Long.valueOf(request.pathVariable("id"));
+            var movieDTO = new MovieDTO(title, LocalDate.parse(release_year), description, Byte.parseByte(seasons), filePart);
 
             return movieService.update(id,movieDTO)
-                    .flatMap(movie -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie)))
+                    .flatMap(movie -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(movie))
                     .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with a id: " + id)))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update movie: " + e.getMessage()));
         });

@@ -10,6 +10,7 @@ import com.app.messaging.producer.MovieEventProducer;
 import lombok.AllArgsConstructor;
 import com.app.module.movie.entity.Movie;
 import com.app.module.movie.repository.MovieRepository;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -102,14 +103,28 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public Mono<Movie> save(MovieDTO movieDTO) {
         Movie movie = MovieMapper.INSTANCE.mapDtoToEntity(movieDTO);
-        return movieRepository.save(movie)
+
+        var lastIndexOfDot = movieDTO.poster().filename().lastIndexOf('.');
+        var extension = "";
+        if (lastIndexOfDot != 1) {
+            extension = movieDTO.poster().filename().substring(lastIndexOfDot);
+        }
+        var filename = RandomStringUtils.randomAlphabetic(15);
+        filename = filename + extension.replaceAll("[(){}]", "");
+
+        var path = Paths.get("moviePoster/" + filename);
+
+        movie.setPoster(filename);
+
+        return movieDTO.poster().transferTo(path).then(
+            movieRepository.save(movie)
                 .flatMap(savedMovie -> redisTemplate
-                        .opsForValue()
-                        .set("movie:"+savedMovie.getId(),movie,Duration.ofHours(24))
-                        .thenReturn(savedMovie)
+                    .opsForValue()
+                    .set("movie:"+savedMovie.getId(),movie,Duration.ofHours(24))
+                    .thenReturn(savedMovie)
                 )
                 .doOnSuccess(savedMovie -> movieEventProducer.send(new MovieEvent(savedMovie.getId(), EventType.CREATED,Instant.now())))
-                .log("Save a new movie: " + movie);
+                .log("Save a new movie: " + movie));
     }
 
     /**
@@ -124,27 +139,39 @@ public class MovieServiceImpl implements MovieService {
             .switchIfEmpty(Mono.error(new MovieNotFound("Movie not found with id: " + id)))
             .flatMap(existingMovie -> {
 
-                    Path path = Paths.get("moviePoster/" + existingMovie.getPoster());
-                    File file = path.toFile();
-                    if (file.exists() && file.isFile()) {
-                        file.delete();
-                    }
-
-                    existingMovie.setTitle(movieDTO.getTitle());
-                    existingMovie.setReleaseYear(movieDTO.getReleaseYear());
-                    existingMovie.setDescription(movieDTO.getDescription());
-                    existingMovie.setSeasons(movieDTO.getSeasons());
-                    existingMovie.setPoster(movieDTO.getPoster());
-
-                return movieRepository.save(existingMovie)
-                    .flatMap(updatedMovie -> redisTemplate
-                            .opsForValue()
-                            .set("movie:" + updatedMovie.getId(), updatedMovie, Duration.ofHours(24))
-                            .thenReturn(updatedMovie)
-                    )
-                    .doOnSuccess(updatedMovie -> movieEventProducer.send(new MovieEvent(updatedMovie.getId(),EventType.UPDATED,Instant.now())));
+                Path path = Paths.get("moviePoster/" + existingMovie.getPoster());
+                File file = path.toFile();
+                if (file.exists() && file.isFile()) {
+                    var isDeleted = file.delete();
+                    log.info("Is file ({}) delete: {}", file, isDeleted);
                 }
-            ).log("Update a Movie with id: " + id);
+
+                var lastIndexOfDot = movieDTO.poster().filename().lastIndexOf('.');
+                var extension = "";
+                if (lastIndexOfDot != 1) {
+                    extension = movieDTO.poster().filename().substring(lastIndexOfDot);
+                }
+                var filename = RandomStringUtils.randomAlphabetic(15);
+                filename = filename + extension.replaceAll("[(){}]", "");
+
+                var newPath = Paths.get("moviePoster/" + filename);
+
+                existingMovie.setTitle(movieDTO.title());
+                existingMovie.setReleaseYear(movieDTO.releaseYear());
+                existingMovie.setDescription(movieDTO.description());
+                existingMovie.setSeasons(movieDTO.seasons());
+                existingMovie.setPoster(filename);
+
+                return movieDTO.poster().transferTo(newPath).then(
+                        movieRepository.save(existingMovie)
+                                .flatMap(updatedMovie -> redisTemplate
+                                        .opsForValue()
+                                        .set("movie:" + updatedMovie.getId(), updatedMovie, Duration.ofHours(2))
+                                        .thenReturn(updatedMovie)
+                                )
+                                .doOnSuccess(updateMovie -> movieEventProducer.send(new MovieEvent(updateMovie.getId(), EventType.UPDATED, Instant.now())))
+                );
+            }).log("Update a Movie with id: " + id);
     }
 
     /**
