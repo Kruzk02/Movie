@@ -110,38 +110,22 @@ public class MovieMediaHandler {
             Map<String, Part> partMap = parts.toSingleValueMap();
             partMap.forEach((key,value) -> System.out.println("Part: " + key + " -> " + value));
 
-            FilePart filePart = (FilePart) partMap.get("video");
+            var filePart = (FilePart) partMap.get("video");
             if (filePart == null) throw new IllegalArgumentException("Video file is missing");
 
-            Long movieId = Long.valueOf(Objects.requireNonNull(getFormFieldValue(partMap, "movieId")));
-            byte episodes = Byte.parseByte(Objects.requireNonNull(getFormFieldValue(partMap, "episodes")));
-            LocalTime duration = LocalTime.parse(Objects.requireNonNull(getFormFieldValue(partMap, "duration")));
-            String quality = getFormFieldValue(partMap,"quality");
+            var movieId = Long.valueOf(Objects.requireNonNull(getFormFieldValue(partMap, "movieId")));
+            var episodes = Byte.parseByte(Objects.requireNonNull(getFormFieldValue(partMap, "episodes")));
+            var duration = LocalTime.parse(Objects.requireNonNull(getFormFieldValue(partMap, "duration")));
+            var quality = getFormFieldValue(partMap,"quality");
 
             if (movieId == null || episodes == 0 || duration == null || quality == null) {
                 throw new IllegalArgumentException("One or two field is missing");
             }
 
-            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = filePart.filename().substring(lastIndexOfDot);
-            }
-
-            String filename = RandomStringUtils.randomAlphabetic(20);
-            filename += extension.replaceAll("[(){}]","");
-
-            MovieMediaDTO movieMediaDTO = new MovieMediaDTO();
-            movieMediaDTO.setMovieId(movieId);
-            movieMediaDTO.setEpisodes(episodes);
-            movieMediaDTO.setDuration(duration);
-            movieMediaDTO.setQuality(quality);
-            movieMediaDTO.setVideo(filename);
-
-            Path path = Paths.get("movieMedia/" + filename);
+            var movieMediaDTO = new MovieMediaDTO(movieId, episodes, duration, quality, filePart);
 
             return movieMediaService.save(movieMediaDTO)
-                    .flatMap(movieMedia -> filePart.transferTo(path).then(ServerResponse.status(HttpStatus.CREATED).bodyValue(movieMedia)))
+                    .flatMap(movieMedia -> ServerResponse.status(HttpStatus.CREATED).bodyValue(movieMedia))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie media: " + e.getMessage()));
         });
     }
@@ -163,28 +147,12 @@ public class MovieMediaHandler {
                 throw new IllegalArgumentException("One or two field is missing");
             }
 
-            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = filePart.filename().substring(lastIndexOfDot);
-            }
-
-            String filename = RandomStringUtils.randomAlphabetic(20);
-            filename += extension.replaceAll("[(){}]","");
-
             Long id = Long.valueOf(request.pathVariable("id"));
 
-            MovieMediaDTO movieMediaDTO = new MovieMediaDTO();
-            movieMediaDTO.setMovieId(movieId);
-            movieMediaDTO.setEpisodes(episodes);
-            movieMediaDTO.setDuration(duration);
-            movieMediaDTO.setQuality(quality);
-            movieMediaDTO.setVideo(filename);
-
-            Path path = Paths.get("movieMedia/" + filename);
+            var movieMediaDTO = new MovieMediaDTO(movieId, episodes, duration, quality, filePart);
 
             return movieMediaService.update(id,movieMediaDTO)
-                    .flatMap(movieMedia -> filePart.transferTo(path).then(ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(movieMedia)))
+                    .flatMap(movieMedia -> ServerResponse.status(HttpStatus.NO_CONTENT).bodyValue(movieMedia))
                     .switchIfEmpty(ServerResponse.notFound().build())
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving movie media: " + e.getMessage()));
         });

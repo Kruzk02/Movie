@@ -14,6 +14,6 @@ public interface MovieMediaMapper {
     @Mapping(source = "episodes",target = "episodes")
     @Mapping(source = "duration",target = "duration")
     @Mapping(source = "quality",target = "quality")
-    @Mapping(source = "video",target = "filePath")
+    @Mapping(source = "video",target = "filePath", ignore = true)
     MovieMedia mapDtoToEntity(MovieMediaDTO movieMediaDTO);
 }

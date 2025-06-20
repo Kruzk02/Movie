@@ -6,6 +6,7 @@ import com.app.Expection.MovieMediaNotFound;
 import com.app.module.movie.mapper.MovieMediaMapper;
 import com.app.module.movie.repository.MovieMediaRepository;
 import com.app.module.movie.service.MovieMediaService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -79,12 +80,28 @@ public class MovieMediaServiceImpl implements MovieMediaService {
     @Override
     public Mono<MovieMedia> save(MovieMediaDTO movieMediaDTO) {
         MovieMedia movieMedia = MovieMediaMapper.INSTANCE.mapDtoToEntity(movieMediaDTO);
-        return movieMediaRepository.save(movieMedia)
+
+        var filePart = movieMediaDTO.video();
+        int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+        String extension = "";
+        if (lastIndexOfDot != 1) {
+            extension = filePart.filename().substring(lastIndexOfDot);
+        }
+
+        String filename = RandomStringUtils.randomAlphabetic(20);
+        filename += extension.replaceAll("[(){}]","");
+
+        var path = Paths.get("movieMedia/" + filename);
+        movieMedia.setFilePath(filename);
+
+        return filePart.transferTo(path).then(
+            movieMediaRepository.save(movieMedia)
                 .flatMap(savedMovieMedia -> redisTemplate
-                        .opsForValue()
-                        .set("movie_media:" + savedMovieMedia.getId(),savedMovieMedia,Duration.ofHours(24))
-                        .thenReturn(savedMovieMedia))
-                .log("Save a new movie media");
+                    .opsForValue()
+                    .set("movie_media:" + savedMovieMedia.getId(),savedMovieMedia,Duration.ofHours(2))
+                    .thenReturn(savedMovieMedia))
+                .log("Save a new movie media")
+        );
     }
 
     @Override
@@ -97,20 +114,34 @@ public class MovieMediaServiceImpl implements MovieMediaService {
                 File file = path.toFile();
 
                 if (file.exists() && file.isFile()) {
-                    file.delete();
+                    var isDeleted = file.delete();
                 }
 
-                existingMovieMedia.setFilePath(movieMediaDTO.getVideo());
-                existingMovieMedia.setMovieId(movieMediaDTO.getMovieId());
-                existingMovieMedia.setDuration(movieMediaDTO.getDuration());
-                existingMovieMedia.setEpisodes(movieMediaDTO.getEpisodes());
-                existingMovieMedia.setQuality(movieMediaDTO.getQuality());
+                var filePart = movieMediaDTO.video();
+                int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+                String extension = "";
+                if (lastIndexOfDot != 1) {
+                    extension = filePart.filename().substring(lastIndexOfDot);
+                }
 
-                return movieMediaRepository.save(existingMovieMedia)
-                    .flatMap(updatedMovieMedia -> redisTemplate
-                        .opsForValue()
-                        .set("movie_media:" + updatedMovieMedia.getId(),updatedMovieMedia,Duration.ofHours(24))
-                        .thenReturn(updatedMovieMedia));
+                String filename = RandomStringUtils.randomAlphabetic(20);
+                filename += extension.replaceAll("[(){}]","");
+
+                Path newPath = Paths.get("movieMedia/" + filename);
+
+                existingMovieMedia.setFilePath(filename);
+                existingMovieMedia.setMovieId(movieMediaDTO.movieId());
+                existingMovieMedia.setDuration(movieMediaDTO.duration());
+                existingMovieMedia.setEpisodes(movieMediaDTO.episodes());
+                existingMovieMedia.setQuality(movieMediaDTO.quality());
+
+                return filePart.transferTo(newPath).then(
+                    movieMediaRepository.save(existingMovieMedia)
+                        .flatMap(updatedMovieMedia -> redisTemplate
+                            .opsForValue()
+                            .set("movie_media:" + updatedMovieMedia.getId(),updatedMovieMedia,Duration.ofHours(24))
+                            .thenReturn(updatedMovieMedia))
+                );
             })
             .log("Update movie media with a id: " + id);
     }
