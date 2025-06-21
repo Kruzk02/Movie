@@ -3,10 +3,9 @@ package com.app.module.actor.handler;
 import com.app.module.actor.dto.ActorDTO;
 import com.app.module.actor.dto.ActorMovieDTO;
 import com.app.module.actor.entity.Actor;
-import com.app.module.movie.entity.Movie;
+import com.app.module.actor.entity.Movie;
 import com.app.module.actor.service.ActorMovieService;
 import com.app.module.actor.service.ActorService;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -22,8 +21,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
 
