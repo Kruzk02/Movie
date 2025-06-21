@@ -7,6 +7,7 @@ import com.app.Expection.ActorNotFound;
 import com.app.module.actor.mapper.ActorMapper;
 import com.app.module.actor.repository.ActorRepository;
 import com.app.module.actor.service.ActorService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,12 +64,28 @@ public class ActorServiceImpl implements ActorService {
     @Override
     public Mono<Actor> save(ActorDTO actorDTO) {
         Actor actor = ActorMapper.INSTANCE.mapActorDtoToActor(actorDTO);
-        return actorRepository.save(actor)
-                .flatMap(savedActor -> redisTemplate
-                        .opsForValue()
-                        .set("actor:" + savedActor.getId(),savedActor,Duration.ofHours(24))
-                        .thenReturn(savedActor))
-            .log("Saved a new Actor: " + actorDTO.getFirstName() + " "+ actorDTO.getLastName());
+
+        var filePart = actorDTO.photo();
+        int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+        String extension = "";
+        if (lastIndexOfDot != 1) {
+            extension = filePart.filename().substring(lastIndexOfDot);
+        }
+
+        String filename = RandomStringUtils.randomAlphabetic(15);
+        filename += extension.replaceAll("[(){}]","");
+
+        Path path = Paths.get("actorPhoto/" + filename);
+
+        actor.setPhoto(filename);
+
+        return filePart.transferTo(path).then(actorRepository.save(actor)
+            .flatMap(savedActor -> redisTemplate
+                .opsForValue()
+                .set("actor:" + savedActor.getId(),savedActor,Duration.ofHours(24))
+                .thenReturn(savedActor))
+            .log("Saved a new Actor: " + actorDTO.firstName() + " " + actorDTO.lastName())
+        );
     }
 
     @Override
@@ -83,17 +100,29 @@ public class ActorServiceImpl implements ActorService {
                     file.delete();
                 }
 
-                existingActor.setFirstName(actorDTO.getFirstName());
-                existingActor.setLastName(actorDTO.getLastName());
-                existingActor.setBirthDate(actorDTO.getBirthDate());
-                existingActor.setNationality(Enum.valueOf(Nationality.class,actorDTO.getNationality()));
-                existingActor.setPhoto(actorDTO.getPhoto());
+                var filePart = actorDTO.photo();
+                int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+                String extension = "";
+                if (lastIndexOfDot != 1) {
+                    extension = filePart.filename().substring(lastIndexOfDot);
+                }
 
-                return actorRepository.save(existingActor)
+                String filename = RandomStringUtils.randomAlphabetic(15);
+                filename += extension.replaceAll("[(){}]","");
+                Path newPath = Paths.get("actorPhoto/"+filename);
+
+                existingActor.setFirstName(actorDTO.firstName());
+                existingActor.setLastName(actorDTO.lastName());
+                existingActor.setBirthDate(actorDTO.birthDate());
+                existingActor.setNationality(Enum.valueOf(Nationality.class,actorDTO.nationality()));
+                existingActor.setPhoto(filename);
+
+                return filePart.transferTo(newPath).then(actorRepository.save(existingActor)
                     .flatMap(updatedActor -> redisTemplate
                         .opsForValue()
                         .set("actor:" + updatedActor.getId(),updatedActor,Duration.ofHours(24))
-                        .thenReturn(updatedActor));
+                        .thenReturn(updatedActor))
+                );
             })
             .log("Update a Actor with a id: "+id);
     }

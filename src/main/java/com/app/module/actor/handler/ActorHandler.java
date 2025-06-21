@@ -93,26 +93,10 @@ public class ActorHandler {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
-            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = filePart.filename().substring(lastIndexOfDot);
-            }
-
-            String filename = RandomStringUtils.randomAlphabetic(15);
-            filename += extension.replaceAll("[(){}]","");
-
-            ActorDTO actorDTO = new ActorDTO();
-            actorDTO.setFirstName(firstName);
-            actorDTO.setLastName(lastName);
-            actorDTO.setBirthDate(LocalDate.parse(birthDate));
-            actorDTO.setNationality(nationality);
-            actorDTO.setPhoto(filename);
-
-            Path path = Paths.get("actorPhoto/" + filename);
+            ActorDTO actorDTO = new ActorDTO(firstName, lastName, LocalDate.parse(birthDate), nationality, filePart);
 
             return actorService.save(actorDTO)
-                    .flatMap(actor -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)))
+                    .flatMap(actor -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor))
                     .onErrorResume(e -> ServerResponse.ok().bodyValue("Error saving actor: " + e.getMessage()));
         });
     }
@@ -137,26 +121,12 @@ public class ActorHandler {
                 return Mono.error(new IllegalArgumentException("One or more form fields are missing"));
             }
 
-            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = filePart.filename().substring(lastIndexOfDot);
-            }
-
-            String filename = RandomStringUtils.randomAlphabetic(15);
-            filename += extension.replaceAll("[(){}]","");
-
-            ActorDTO actorDTO = new ActorDTO();
-            actorDTO.setFirstName(firstName);
-            actorDTO.setLastName(lastName);
-            actorDTO.setBirthDate(LocalDate.parse(birthDate));
-            actorDTO.setNationality(nationality);
-            actorDTO.setPhoto(filename);
+            ActorDTO actorDTO = new ActorDTO(firstName, lastName, LocalDate.parse(birthDate), nationality, filePart);
 
             Long id = Long.valueOf(request.pathVariable("id"));
-            Path path = Paths.get("actorPhoto/"+filename);
+
             return actorService.update(id,actorDTO)
-                    .flatMap(actor -> filePart.transferTo(path).then(ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor)))
+                    .flatMap(actor -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(actor))
                     .switchIfEmpty(ServerResponse.notFound().build())
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update actor: " + e.getMessage()));
         });
