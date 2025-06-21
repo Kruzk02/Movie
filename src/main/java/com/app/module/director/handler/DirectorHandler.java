@@ -89,27 +89,11 @@ public class DirectorHandler {
             if (firstName == null || lastName == null || birthDate == null || nationality == null) {
                 return Mono.error(new IllegalArgumentException("One or two form fields are missing"));
             }
-            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = filePart.filename().substring(lastIndexOfDot);
-            }
 
-            String filename = RandomStringUtils.randomAlphabetic(15);
-            filename += extension.replaceAll("[(){}]", "");
+            DirectorDTO directorDTO = new DirectorDTO(firstName, lastName, LocalDate.parse(birthDate), nationality, filePart);
 
-
-            DirectorDTO directorDTO = new DirectorDTO();
-            directorDTO.setFirstName(firstName);
-            directorDTO.setLastName(lastName);
-            directorDTO.setNationality(nationality);
-            directorDTO.setBirthDate(LocalDate.parse(birthDate));
-            directorDTO.setPhoto(filename);
-
-            Path path = Paths.get("directorPhoto/" + filename);
             return directorService.save(directorDTO)
-                    .flatMap(director -> filePart.transferTo(path)
-                            .then(ServerResponse.ok().bodyValue(director)))
+                    .flatMap(director -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(director))
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving director: " + e.getMessage()));
         });
     }
@@ -132,29 +116,11 @@ public class DirectorHandler {
                 return Mono.error(new IllegalArgumentException("One or two form fields are missing"));
             }
 
-            int lastIndexOfDot = filePart.filename().lastIndexOf('.');
-            String extension = "";
-            if (lastIndexOfDot != 1) {
-                extension = filePart.filename().substring(lastIndexOfDot);
-            }
+            DirectorDTO directorDTO = new DirectorDTO(firstName, lastName, LocalDate.parse(birthDate), nationality, filePart);
 
-            String filename = RandomStringUtils.randomAlphabetic(15);
-            filename += extension.replaceAll("[(){}]", "");
-
-            DirectorDTO directorDTO = new DirectorDTO();
-            directorDTO.setFirstName(firstName);
-            directorDTO.setLastName(lastName);
-            directorDTO.setNationality(nationality);
-            directorDTO.setBirthDate(LocalDate.parse(birthDate));
-            directorDTO.setPhoto(filename);
-
-            Path path = Paths.get("directorPhoto/" + filename);
             Long id = Long.valueOf(request.pathVariable("id"));
             return directorService.update(id, directorDTO)
-                    .flatMap(director ->
-                            filePart.transferTo(path)
-                                    .then(ServerResponse.ok().bodyValue(director))
-                    )
+                    .flatMap(director -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(director))
                     .switchIfEmpty(ServerResponse.notFound().build())
                     .onErrorResume(e -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error updating director: " + e.getMessage()));
         });

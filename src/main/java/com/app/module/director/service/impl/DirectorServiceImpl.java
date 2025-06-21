@@ -7,6 +7,7 @@ import com.app.Expection.DirectorNotFound;
 import com.app.module.director.mapper.DirectorMapper;
 import com.app.module.director.repository.DirectorRepository;
 import com.app.module.director.service.DirectorService;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -59,12 +60,29 @@ public class DirectorServiceImpl implements DirectorService {
     @Override
     public Mono<Director> save(DirectorDTO directorDTO) {
         Director director = DirectorMapper.INSTANCE.mapDirectorDtoToDirector(directorDTO);
-        return directorRepository.save(director)
+
+        var filePart = directorDTO.photo();
+        int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+        String extension = "";
+        if (lastIndexOfDot != 1) {
+            extension = filePart.filename().substring(lastIndexOfDot);
+        }
+
+        String filename = RandomStringUtils.randomAlphabetic(15);
+        filename += extension.replaceAll("[(){}]", "");
+
+        Path path = Paths.get("directorPhoto/" + filename);
+
+        director.setPhoto(filename);
+
+        return filePart.transferTo(path).then(
+            directorRepository.save(director)
                 .flatMap(savedDirector -> redisTemplate
-                        .opsForValue()
-                        .set("director:" + savedDirector.getId(),savedDirector,Duration.ofHours(24))
-                        .thenReturn(savedDirector))
-                .log("Save a new Director: " + directorDTO);
+                    .opsForValue()
+                    .set("director:" + savedDirector.getId(),savedDirector,Duration.ofHours(24))
+                    .thenReturn(savedDirector))
+                .log("Save a new Director: " + directorDTO)
+        );
     }
 
     @Override
@@ -80,17 +98,32 @@ public class DirectorServiceImpl implements DirectorService {
                     file.delete();
                 }
 
-                existingDirector.setFirstName(directorDTO.getFirstName());
-                existingDirector.setLastName(directorDTO.getLastName());
-                existingDirector.setBirthDate(directorDTO.getBirthDate());
-                existingDirector.setNationality(Enum.valueOf(Nationality.class,directorDTO.getNationality()));
-                existingDirector.setPhoto(directorDTO.getPhoto());
+                var filePart = directorDTO.photo();
 
-               return directorRepository.save(existingDirector)
+                int lastIndexOfDot = filePart.filename().lastIndexOf('.');
+                String extension = "";
+                if (lastIndexOfDot != 1) {
+                    extension = filePart.filename().substring(lastIndexOfDot);
+                }
+
+                String filename = RandomStringUtils.randomAlphabetic(15);
+                filename += extension.replaceAll("[(){}]", "");
+                Path newPath = Paths.get("directorPhoto/" + filename);
+
+
+                existingDirector.setFirstName(directorDTO.firstName());
+                existingDirector.setLastName(directorDTO.lastName());
+                existingDirector.setBirthDate(directorDTO.birthDate());
+                existingDirector.setNationality(Enum.valueOf(Nationality.class,directorDTO.nationality()));
+                existingDirector.setPhoto(filename);
+
+                return filePart.transferTo(newPath).then(
+                    directorRepository.save(existingDirector)
                        .flatMap(updatedDirector -> redisTemplate
-                               .opsForValue()
-                               .set("director:" + updatedDirector.getId(),updatedDirector,Duration.ofHours(24))
-                               .thenReturn(updatedDirector));
+                           .opsForValue()
+                           .set("director:" + updatedDirector.getId(),updatedDirector,Duration.ofHours(24))
+                           .thenReturn(updatedDirector))
+                );
             })
             .log("Update a director with a id: " + id);
     }
