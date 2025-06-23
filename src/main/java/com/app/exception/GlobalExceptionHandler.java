@@ -1,5 +1,6 @@
-package com.app.Expection;
+package com.app.exception;
 
+import com.app.exception.sub.*;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -2,8 +2,8 @@ package com.app.module.comment.service;
 
 import com.app.module.comment.dto.CommentDTO;
 import com.app.module.comment.entity.Comment;
-import com.app.Expection.CommentNotFoundException;
-import com.app.Expection.CommentNotMatchException;
+import com.app.exception.sub.CommentNotFoundException;
+import com.app.exception.sub.CommentNotMatchException;
 import com.app.module.comment.mapper.CommentMapper;
 import com.app.module.comment.repository.CommentRepository;
 import lombok.AllArgsConstructor;

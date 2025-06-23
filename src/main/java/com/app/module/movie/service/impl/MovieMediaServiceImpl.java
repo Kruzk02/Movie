@@ -2,7 +2,7 @@ package com.app.module.movie.service.impl;
 
 import com.app.module.movie.dto.MovieMediaDTO;
 import com.app.module.movie.entity.MovieMedia;
-import com.app.Expection.MovieMediaNotFound;
+import com.app.exception.sub.MovieMediaNotFound;
 import com.app.module.movie.mapper.MovieMediaMapper;
 import com.app.module.movie.repository.MovieMediaRepository;
 import com.app.module.movie.service.MovieMediaService;

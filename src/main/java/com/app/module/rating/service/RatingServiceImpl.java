@@ -1,8 +1,8 @@
 package com.app.module.rating.service;
 
+import com.app.exception.sub.*;
 import com.app.module.rating.dto.RatingDTO;
 import com.app.module.rating.entity.Rating;
-import com.app.Expection.*;
 import com.app.module.rating.mapper.RatingMapper;
 import com.app.module.rating.repository.RatingRepository;
 import lombok.AllArgsConstructor;

@@ -3,7 +3,7 @@ package com.app.module.movie.service.impl;
 import com.app.messaging.event.EventType;
 import com.app.messaging.event.MovieEvent;
 import com.app.module.movie.dto.MovieDTO;
-import com.app.Expection.MovieNotFound;
+import com.app.exception.sub.MovieNotFound;
 import com.app.module.movie.mapper.MovieMapper;
 import com.app.module.movie.service.MovieService;
 import com.app.messaging.producer.MovieEventProducer;

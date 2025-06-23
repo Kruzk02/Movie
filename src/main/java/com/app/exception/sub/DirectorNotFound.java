@@ -1,4 +1,4 @@
-package com.app.Expection;
+package com.app.exception.sub;
 
 public class DirectorNotFound extends RuntimeException{
     /**

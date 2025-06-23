@@ -1,7 +1,7 @@
 package com.app.module.user.service.impl;
 
 import com.app.module.user.entity.VerificationToken;
-import com.app.Expection.InvalidTokenException;
+import com.app.exception.sub.InvalidTokenException;
 import com.app.module.user.repository.UserRepository;
 import com.app.module.user.repository.VerificationTokenRepository;
 import com.app.module.user.service.VerificationTokenService;

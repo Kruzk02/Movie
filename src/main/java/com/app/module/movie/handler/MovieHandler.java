@@ -2,9 +2,8 @@ package com.app.module.movie.handler;
 
 import com.app.module.movie.dto.MovieDTO;
 import com.app.module.movie.entity.Movie;
-import com.app.Expection.MovieNotFound;
+import com.app.exception.sub.MovieNotFound;
 import com.app.module.movie.service.MovieService;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -20,8 +19,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;

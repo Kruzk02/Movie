@@ -3,7 +3,7 @@ package com.app.module.director.service.impl;
 import com.app.module.director.dto.DirectorDTO;
 import com.app.module.director.entity.Director;
 import com.app.type.Nationality;
-import com.app.Expection.DirectorNotFound;
+import com.app.exception.sub.DirectorNotFound;
 import com.app.module.director.mapper.DirectorMapper;
 import com.app.module.director.repository.DirectorRepository;
 import com.app.module.director.service.DirectorService;

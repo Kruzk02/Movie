@@ -1,4 +1,4 @@
-package com.app.Expection;
+package com.app.exception;
 
 public class ErrorResponse {
     private String message;
