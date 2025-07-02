@@ -1,4 +1,4 @@
-package com.app.module.genre.entity;
+package com.app.module.movie.entity;
 
 
 import org.springframework.data.annotation.Id;

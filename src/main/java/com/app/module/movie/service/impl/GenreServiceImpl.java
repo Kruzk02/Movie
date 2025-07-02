@@ -1,9 +1,9 @@
-package com.app.module.genre.service.impl;
+package com.app.module.movie.service.impl;
 
-import com.app.module.genre.entity.Genre;
+import com.app.module.movie.entity.Genre;
 import com.app.exception.sub.GenreNotFound;
-import com.app.module.genre.repository.GenreRepository;
-import com.app.module.genre.service.GenreService;
+import com.app.module.movie.repository.GenreRepository;
+import com.app.module.movie.service.GenreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;

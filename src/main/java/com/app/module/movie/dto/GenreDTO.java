@@ -1,4 +1,4 @@
-package com.app.module.genre.dto;
+package com.app.module.movie.dto;
 
 import java.util.Set;
 

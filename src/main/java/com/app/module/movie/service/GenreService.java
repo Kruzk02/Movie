@@ -1,6 +1,6 @@
-package com.app.module.genre.service;
+package com.app.module.movie.service;
 
-import com.app.module.genre.entity.Genre;
+import com.app.module.movie.entity.Genre;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
