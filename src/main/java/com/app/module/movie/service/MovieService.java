@@ -7,6 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface MovieService {
     Flux<Movie> findAll();
+    Flux<Movie> findMovieByActorId(Long id);
     Mono<Movie> findById(Long id);
     Mono<Movie> findByIdAndReceiveUserId(Long id,Long userId);
     Mono<Movie> save(MovieDTO movieDTO);

@@ -144,17 +144,6 @@ public class ActorHandler {
                 .bodyValue(savedActorMovie))
             .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error saving actor: " + error.getMessage()));
     }
-
-    public Mono<ServerResponse> findMovieByActorId(ServerRequest request) {
-        Long id = Long.valueOf(request.pathVariable("id"));
-        Flux<Movie> movieFlux = actorMovieService.findMovieByActor(id);
-        return movieFlux.collectList()
-                .flatMap(movies -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(movies))
-                .switchIfEmpty(ServerResponse.notFound().build());
-    }
-
     public Mono<ServerResponse> updateActorMovie(ServerRequest request){
         return request.bodyToMono(ActorMovieDTO.class)
                 .flatMap(actorMovieService::updateActorMovie)

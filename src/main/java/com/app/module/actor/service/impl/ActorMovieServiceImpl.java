@@ -70,10 +70,4 @@ public class ActorMovieServiceImpl implements ActorMovieService {
     public Flux<Actor> findActorByMovieId(Long movieId) {
         return actorMovieRepository.findActorByMovieId(movieId);
     }
-
-    @Override
-    public Flux<Movie> findMovieByActor(Long id) {
-        return actorMovieRepository.findMovieByActorId(id)
-                .log("Find movie by actor id: " + id);
-    }
 }

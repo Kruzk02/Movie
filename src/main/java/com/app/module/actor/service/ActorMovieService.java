@@ -10,5 +10,4 @@ public interface ActorMovieService {
     Mono<Void> saveActorMovie(ActorMovieDTO actorMovieDTO);
     Mono<Void> updateActorMovie(ActorMovieDTO actorMovieDTO);
     Flux<Actor> findActorByMovieId(Long movieId);
-    Flux<Movie> findMovieByActor(Long id);
 }

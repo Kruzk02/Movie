@@ -62,7 +62,6 @@ public class Router {
                 .andRoute(GET("/actors/{id}/photo"),actorHandler::getActorPhoto)
                 .andRoute(POST("/actors/movies"),actorHandler::saveActorMovie)
                 .andRoute(PUT("/actors/movies"),actorHandler::updateActorMovie)
-                .andRoute(GET("/actors/{id}/movies"),actorHandler::findMovieByActorId)
                 .andRoute(POST("/actors"),actorHandler::save)
                 .andRoute(PUT("/actors/{id}"),actorHandler::update)
                 .andRoute(DELETE("/actors/{id}"),actorHandler::delete);
