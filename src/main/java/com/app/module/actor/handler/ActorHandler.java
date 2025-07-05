@@ -3,7 +3,6 @@ package com.app.module.actor.handler;
 import com.app.module.actor.dto.ActorDTO;
 import com.app.module.actor.dto.ActorMovieDTO;
 import com.app.module.actor.entity.Actor;
-import com.app.module.actor.entity.Movie;
 import com.app.module.actor.service.ActorMovieService;
 import com.app.module.actor.service.ActorService;
 import org.springframework.beans.factory.annotation.Autowired;

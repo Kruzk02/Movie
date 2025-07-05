@@ -41,7 +41,6 @@ public class Router {
                 .route(GET("/directors"),directorHandler::findAll)
                 .andRoute(GET("/directors/{id}"),directorHandler::findById)
                 .andRoute(GET("/directors/{id}/photo"),directorHandler::getDirectorPhoto)
-                .andRoute(GET("/directors/{id}/movies"),directorHandler::findMovieByDirectorId)
                 .andRoute(POST("/directors/movies"),directorHandler::saveDirectorMovie)
                 .andRoute(PUT("directors/movies"), directorHandler::updateDirectorMovie)
                 .andRoute(POST("/directors"),directorHandler::create)

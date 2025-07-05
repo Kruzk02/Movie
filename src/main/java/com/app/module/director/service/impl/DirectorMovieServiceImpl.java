@@ -5,7 +5,6 @@ import com.app.module.director.entity.Director;
 import com.app.module.director.entity.DirectorMoviePK;
 import com.app.messaging.event.EventType;
 import com.app.exception.sub.MovieEventException;
-import com.app.module.director.entity.Movie;
 import com.app.module.director.repository.DirectorMovieRepository;
 import com.app.module.director.service.DirectorMovieService;
 import com.app.messaging.consumer.MovieEventConsumer;
@@ -70,11 +69,5 @@ public class DirectorMovieServiceImpl implements DirectorMovieService {
     public Flux<Director> findDirectorByMovieId(Long movieId) {
         return directorMovieRepository.findDirectorByMovieId(movieId)
                 .log("Find director by movie id: " + movieId);
-    }
-
-    @Override
-    public Flux<Movie> findMovieByDirector(Long id) {
-        return directorMovieRepository.findMovieByDirectorId(id)
-                .log("Find movie by director id: " + id);
     }
 }

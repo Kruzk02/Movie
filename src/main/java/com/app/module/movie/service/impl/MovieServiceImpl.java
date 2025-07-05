@@ -60,6 +60,12 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    public Flux<Movie> findMovieByDirectorId(Long id) {
+        return movieRepository.findMovieByDirectorId(id)
+                .log("Find movie with director id: " + id);
+    }
+
+    @Override
     public Mono<Movie> findByIdAndReceiveUserId(Long id, Long userId) {
         return redisTemplate.opsForValue().get("movie:" + id)
             .switchIfEmpty(

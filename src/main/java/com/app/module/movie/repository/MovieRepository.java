@@ -11,4 +11,8 @@ public interface MovieRepository extends ReactiveCrudRepository<Movie,Long> {
 
     @Query("SELECT m.* FROM movie m JOIN actor_movie am on m.id = am.movie_id JOIN actor a ON am.actor_id = actor_id WHERE a.id = :id")
     Flux<Movie> findMovieByActorId(Long id);
+
+    @Query("SELECT m.* FROM movie m JOIN director_movie dm ON m.id = dm.movie_id JOIN director d ON dm.director_id = d.id WHERE d.id = :id")
+    Flux<Movie> findMovieByDirectorId(Long id);
+
 }

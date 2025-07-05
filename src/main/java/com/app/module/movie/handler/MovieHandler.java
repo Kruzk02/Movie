@@ -36,14 +36,15 @@ public class MovieHandler {
     }
 
     public Mono<ServerResponse> findAll(ServerRequest request) {
-        String type = request.queryParam("actorId").orElse("");
-        Flux<Movie> movieFlux;
-        if (type.isEmpty()) {
-            movieFlux = movieService.findAll();
-        } else {
-            movieFlux = movieService.findMovieByActorId(Long.parseLong(type));
-        }
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(movieFlux, Movie.class);
+        Flux<Movie> movieFlux = request.queryParam("actorId")
+                .map(id -> movieService.findMovieByActorId(Long.valueOf(id)))
+                .or(() -> request.queryParam("directorId")
+                        .map(id -> movieService.findMovieByDirectorId(Long.valueOf(id))))
+                .orElseGet(movieService::findAll);
+
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(movieFlux, Movie.class);
     }
 
     public Mono<ServerResponse> findById(ServerRequest request) {

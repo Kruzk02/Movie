@@ -3,7 +3,6 @@ package com.app.module.director.handler;
 import com.app.module.director.dto.DirectorDTO;
 import com.app.module.director.dto.DirectorMovieDTO;
 import com.app.module.director.entity.Director;
-import com.app.module.director.entity.Movie;
 import com.app.module.director.service.DirectorMovieService;
 import com.app.module.director.service.DirectorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,16 +145,6 @@ public class DirectorHandler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(savedDirectorMovie))
                 .onErrorResume(error -> ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue("Error update director: " + error.getMessage()));
-    }
-
-    public Mono<ServerResponse> findMovieByDirectorId(ServerRequest request){
-        Long id = Long.valueOf(request.pathVariable("id"));
-        Flux<Movie> movieFlux = directorMovieService.findMovieByDirector(id);
-        return movieFlux.collectList()
-            .flatMap(movies -> ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(movies))
-            .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     private String getFormFieldValue(Map<String,Part> partMap,String fieldName){
