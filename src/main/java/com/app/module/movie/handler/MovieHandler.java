@@ -40,6 +40,8 @@ public class MovieHandler {
                 .map(id -> movieService.findMovieByActorId(Long.valueOf(id)))
                 .or(() -> request.queryParam("directorId")
                         .map(id -> movieService.findMovieByDirectorId(Long.valueOf(id))))
+                .or(() -> request.queryParam("genreId")
+                        .map(id -> movieService.findMovieByGenreId(Long.valueOf(id))))
                 .orElseGet(movieService::findAll);
 
         return ServerResponse.ok()

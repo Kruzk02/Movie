@@ -10,5 +10,4 @@ public interface GenreMovieService {
     Flux<Genre> findGenreByMovieId(Long movieId);
     Mono<Void> saveGenreMovie(GenreDTO genreDTO);
     Mono<Void> updateGenreMovie(GenreDTO genreDTO);
-    Flux<Movie> findMovieByGenreId(Long id);
 }

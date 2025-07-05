@@ -107,7 +107,6 @@ public class Router {
         return RouterFunctions
                 .route(GET("/genres"),genreHandler::findAll)
                 .andRoute(GET("/genres/{id}"),genreHandler::findById)
-                .andRoute(GET("/genres/{id}/movies"),genreHandler::findMovieByGenreId)
                 .andRoute(POST("/genres/movies"),genreHandler::saveGenreMovie)
                 .andRoute(PUT("/genres/movies"),genreHandler::updateGenreMovie);
     }

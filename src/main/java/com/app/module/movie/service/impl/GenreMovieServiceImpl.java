@@ -84,16 +84,4 @@ public class GenreMovieServiceImpl implements GenreMovieService {
             })
             .then();
     }
-
-    /**
-     * Retrieves movies by genre ID.
-     *
-     * @param id The ID of the genre.
-     * @return A Flux emitting movies associated with the genre ID.
-     */
-    @Override
-    public Flux<Movie> findMovieByGenreId(Long id) {
-        return genreMovieRepository.findMovieByGenreId(id)
-                .log("Find a movie with a id: " + id);
-    }
 }

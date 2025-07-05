@@ -53,21 +53,6 @@ public class GenreHandler {
     }
 
     /**
-     * Retrieves movies by genres id.
-     * @param request The server request containing the genre id.
-     * @return A Mono emitting the ServerResponse containing a list of movies or a 404 not found if no movies not found.
-     */
-    public Mono<ServerResponse> findMovieByGenreId(ServerRequest request){
-        Long id = Long.valueOf(request.pathVariable("id"));
-        Flux<Movie> movieFlux = genreMovieService.findMovieByGenreId(id);
-        return movieFlux.collectList()
-            .flatMap(movies -> ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(movies))
-            .switchIfEmpty(ServerResponse.notFound().build());
-    }
-
-    /**
      * Saves a new movie genre.
      *
      * @param request The server request containing the GenreDTO in the request body.
